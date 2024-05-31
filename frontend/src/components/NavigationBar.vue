@@ -43,9 +43,11 @@
     }
 
     .btn-custom {
-      background-color: #00000062;
-      border-color: #00000062;
+      background-color: #23b6f5ac;
+      border: none;
       color: white;
+      padding-right: 1vw;
+      padding-left: 1vw;
     }
   
     .nav-link {
