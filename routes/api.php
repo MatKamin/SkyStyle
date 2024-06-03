@@ -10,3 +10,6 @@ Route::get('/user', function (Request $request) {
 Route::get('/example', function () {
     return "This is a basic string response from your API.";
 });
+
+// Route for Weather
+Route::get('/weather', [WeatherController::class, 'getWeather']);

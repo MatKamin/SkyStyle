@@ -20,3 +20,20 @@ myApp.use(Quasar, {
   })
 
 myApp.mount('#app')
+
+/**
+fetch('/api/weather')
+.then(res => {
+  if (!res.ok) {
+    throw new Error('Network Response was not ok');
+  }
+  console.log(res);
+  return res.json();
+})
+.then(data => {
+  console.log(data);
+})
+.catch(err => {
+  console.error('Error fetching weather data:', err);
+})
+*/
