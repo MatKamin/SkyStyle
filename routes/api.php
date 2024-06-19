@@ -13,3 +13,7 @@ Route::get('/example', function () {
 
 // Route for Weather
 Route::get('/weather', [WeatherController::class, 'getWeather']);
+
+
+// Route for Password Generator
+Route::get('/passwd', [PasswordGeneratorController::class, 'getPassword']);
