@@ -20,6 +20,40 @@ import NavigationBar from './components/NavigationBar.vue';
 import HeroSection from './components/HeroSection.vue';
 import CarouselSection from './components/CarouselSection.vue';
 
+/**
+fetch('http://127.0.0.1:8000/api/weather')
+.then(res => {
+  if (!res.ok) {
+    throw new Error('Network Response was not ok');
+  }
+  console.log("1");
+  console.log(res);
+  console.log("2");
+  return res.json();
+})
+.then(data => {
+  console.log(data);
+})
+.catch(err => {
+  console.error('Error fetching weather data:', err);
+})
+
+
+fetch('/api/passwd')
+.then(res => {
+  if (!res.ok) {
+    throw new Error('Network Response was not ok!');
+  }
+  console.log(res);
+  return res.json();
+})
+.then(d => {
+  console.log(d);
+})
+.catch(e => {
+  console.error('Error fetching weather data:', e);
+});*/
+
 </script>
 
 <style scoped>
