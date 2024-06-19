@@ -2,6 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\WeatherController;
+use App\Http\Controllers\PasswordGeneratorController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -13,7 +15,6 @@ Route::get('/example', function () {
 
 // Route for Weather
 Route::get('/weather', [WeatherController::class, 'getWeather']);
-
 
 // Route for Password Generator
 Route::get('/passwd', [PasswordGeneratorController::class, 'getPassword']);
