@@ -17,13 +17,31 @@
           <!-- Right-side Icons and Buttons -->
           <div class="text-end">
             <span class="fs-5 me-4 d-inline-block align-middle">Log In</span>
-            <button type="button" class="fs-5 btn btn-custom rounded-pill">Sign Up</button>
+            <button type="button" class="fs-5 btn btn-custom rounded-pill" @click="goToRegister">Sign Up</button>
           </div>
         </div>
       </div>
     </header>
   </template>
   
+  <script>
+    import { useRouter } from 'vue-router';
+    
+    export default {
+      setup() {
+        const router = useRouter();
+        
+        const goToRegister = () => {
+          router.push('/register');
+        };
+    
+        return {
+          goToRegister
+        };
+      }
+    }
+  </script>
+
   <style scoped>
     header {
       position: fixed;

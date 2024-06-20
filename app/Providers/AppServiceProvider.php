@@ -25,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+
         Session::extend('custom_database', function ($app) {
             $connection = $app['db']->connection(config('session.connection'));
             $table = config('session.table');
