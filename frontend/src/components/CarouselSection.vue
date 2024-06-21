@@ -17,16 +17,20 @@
         class="bg-black text-white shadow-1"
       >
         <q-carousel-slide name="style" class="column no-wrap flex-center">
-          <p>Test Page 1</p>
+          <h3>Intelligent Wardrobe Management</h3>
+          <p class="fs-6">Upload your wardrobe effortlessly and let our AI categorize your clothes for you. Shirts, pants, jackets – you name it, we’ll recognize it!</p>
         </q-carousel-slide>
         <q-carousel-slide name="tv" class="column no-wrap flex-center">
-            <p>Test Page 2</p>
+            <h3>Weather-Based Recommendations</h3>
+            <p class="fs-6">Receive outfit suggestions based on the current weather and forecasts. Whether it’s sunny or rainy, SkyStyle ensures you’re always dressed appropriately.</p>
         </q-carousel-slide>
         <q-carousel-slide name="layers" class="column no-wrap flex-center">
-            <p>Test Page 3</p>
+            <h3>Shopping Suggestions</h3>
+            <p class="fs-6">Get personalized shopping recommendations to complete your wardrobe. Our platform suggests items that match your style and the weather conditions.</p>
         </q-carousel-slide>
         <q-carousel-slide name="map" class="column no-wrap flex-center">
-          <p>Test Page 4</p>
+          <h3>User-Friendly Customization</h3>
+          <p class="fs-6">Easily update and customize your wardrobe parameters. Our intuitive interface lets you adjust clothing details to your liking.</p>
         </q-carousel-slide>
       </q-carousel>
     </section>
@@ -43,6 +47,12 @@
   width: 50%;
   margin-left: auto;
   margin-right: auto;
+  margin-top: -30px;
 }
+
+.q-carousel, .q-panel-parent {
+  border-radius: 25px;
+}
+
   </style>
   

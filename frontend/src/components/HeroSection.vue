@@ -1,7 +1,7 @@
 <template>
     <div class="hero-section">
       <h1>Perfect <span class="highlight">Outfits for Any Forecast</span></h1>
-      <p>The wardrobe you love, on a platform designed to help you dress smartly and quickly.</p>
+      <p class="fs-4">The wardrobe you love, on a platform designed to help you dress smartly and quickly.</p>
       <br/><br/><br/>
       <button class="btn btn-primary rounded-pill btn-custom btn-lg">Learn More!</button>
     </div>

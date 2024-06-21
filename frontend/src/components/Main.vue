@@ -10,6 +10,10 @@
         </template>
       </q-parallax>
       <CarouselSection></CarouselSection>
+      <q-separator class="seperator" color="white" inset />
+      <AboutUs></AboutUs>
+      <q-separator class="seperator" color="white" inset />
+      <CallToActionSection></CallToActionSection>
     </div>
   </template>
   
@@ -19,6 +23,8 @@
     import NavigationBar from './NavigationBar.vue';
     import HeroSection from './HeroSection.vue';
     import CarouselSection from './CarouselSection.vue';
+    import AboutUs from './AboutUs.vue';
+    import CallToActionSection from './CallToActionSection.vue';
     
     import axios from '../axiosConfig';
   
@@ -48,4 +54,7 @@
     margin-top: 20px;
   }
   
+  .seperator {
+    margin-top: 3vh;
+  }
   </style>
