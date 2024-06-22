@@ -46,4 +46,12 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * The wardrobes that belong to the user.
+     */
+    public function wardrobes()
+    {
+        return $this->belongsToMany(Wardrobe::class, 'user_wardrobe', 'UserID', 'WardrobeID');
+    }
 }

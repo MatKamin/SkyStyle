@@ -4,9 +4,14 @@
     <br /><br /><br /><br /><br /><br />
     <q-page-container>
       <q-page class="q-pa-md">
-        <WeatherForecast :coordinates="coordinates" />
-        <q-separator class="seperator" color="white" inset />
-        <OutfitRecommendation :coordinates="coordinates" />
+        <template v-if="coordinates.lat !== null && coordinates.lon !== null">
+          <WeatherForecast :coordinates="coordinates" />
+          <q-separator class="seperator" color="white" inset />
+          <OutfitRecommendation :coordinates="coordinates" />
+        </template>
+        <template v-else>
+          <p>Loading...</p>
+        </template>
       </q-page>
     </q-page-container>
 
@@ -40,7 +45,7 @@ const store = useStore();
 const router = useRouter();
 
 const coordinates = ref({ lat: null, lon: null });
-const dialog = ref(false); // Initialize dialog to false
+const dialog = ref(false);
 const city = ref('');
 
 const logout = async () => {
@@ -108,9 +113,7 @@ watch(() => store.state.user?.location, (newVal) => {
 
 onMounted(async () => {
   if (store.state.authToken) {
-    if (!store.state.user) {
-      await store.dispatch('fetchUser');
-    }
+    await store.dispatch('fetchUser');
     const user = store.state.user;
     if (!user || !user.location || !user.location.lat || !user.location.lon) {
       fetchCoordinates();
@@ -120,7 +123,6 @@ onMounted(async () => {
   }
 });
 </script>
-
 
 <style scoped>
 .q-pa-md {

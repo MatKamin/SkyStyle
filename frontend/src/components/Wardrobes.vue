@@ -5,67 +5,163 @@
       <q-page-container>
         <q-page class="q-pa-md">
           <div class="wardrobes">
-            <q-card class="q-mb-md" v-for="wardrobe in wardrobes" :key="wardrobe.id">
-              <q-card-section>
-                <div class="row no-wrap items-center">
-                  <div class="col-6">
-                    <h4>{{ wardrobe.name }}</h4>
-                    <p>{{ wardrobe.clothes.length }} clothes</p>
+            <div v-if="wardrobes.length === 0" class="centered-content">
+              <p class="text-white">No wardrobes could be found.</p>
+              <q-btn label="Create New Wardrobe" color="primary" @click="openAddDialog" class="q-mt-md" />
+            </div>
+            <div v-else>
+              <q-card class="q-mb-md" v-for="wardrobe in wardrobes" :key="wardrobe.WardrobeID">
+                <q-card-section>
+                  <div class="row no-wrap items-center">
+                    <div class="col-6">
+                      <h4>{{ wardrobe.Title }}</h4>
+                      <p>{{ wardrobe.clothes_count }} clothes</p>
+                    </div>
+                    <div class="col-6 text-right">
+                      <q-btn label="Open" color="primary" @click="openWardrobe(wardrobe.WardrobeID, wardrobe.Title)" class="q-mr-sm" />
+                      <q-btn label="Edit" color="warning" @click="openEditDialog(wardrobe)" class="q-mr-sm" />
+                      <q-btn label="Remove" color="negative" @click="removeWardrobe(wardrobe.WardrobeID)" />
+                    </div>
                   </div>
-                  <div class="col-6 text-right">
-                    <q-btn label="Open" color="primary" @click="openWardrobe(wardrobe.name)" class="q-mr-sm" />
-                    <q-btn label="Edit" color="warning" @click="editWardrobe(wardrobe.id)" class="q-mr-sm" />
-                    <q-btn label="Remove" color="negative" @click="removeWardrobe(wardrobe.id)" />
-                  </div>
-                </div>
-              </q-card-section>
-            </q-card>
-            <q-btn label="Create New Wardrobe" color="primary" @click="createWardrobe" class="q-mt-md" />
+                </q-card-section>
+              </q-card>
+              <q-btn label="Create New Wardrobe" color="primary" @click="openAddDialog" class="q-mt-md" />
+            </div>
           </div>
         </q-page>
       </q-page-container>
+      
+      <q-dialog v-model="dialog" persistent>
+        <q-card class="centered-card">
+          <q-card-section>
+            <div class="text-h6 text-center">{{ isEditMode ? 'Edit Wardrobe' : 'Create New Wardrobe' }}</div>
+          </q-card-section>
+          
+          <q-card-section class="q-pa-lg custom-width centered-content">
+            <q-input v-model="newWardrobe.title" label="Title" filled class="q-mb-md input-center" />
+            <q-input v-model="newWardrobe.description" label="Description" filled type="textarea" class="input-center" />
+          </q-card-section>
+          
+          <q-card-actions align="right" class="q-pr-lg q-pb-lg q-pt-none">
+            <q-btn flat label="Cancel" color="secondary" @click="dialog = false" />
+            <q-btn flat class="large-btn" label="Submit" color="primary" @click="isEditMode ? updateWardrobe() : addWardrobe()" />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
     </q-layout>
   </template>
   
   <script setup>
   import { ref, onMounted } from 'vue';
   import { useRouter } from 'vue-router';
-  import { QLayout, QHeader, QPageContainer, QPage, QBtn, QCard, QCardSection } from 'quasar';
+  import { QLayout, QPageContainer, QPage, QBtn, QCard, QCardSection, QDialog, QInput, QCardActions } from 'quasar';
   import NavigationBar from './NavigationBar.vue';
+  import axios from 'axios';
+  import store from '../store';
   
-  const wardrobes = ref([
-    { id: 1, name: 'Winter Wardrobe', clothes: ['Coat', 'Scarf', 'Gloves'] },
-    { id: 2, name: 'Summer Wardrobe', clothes: ['T-Shirt', 'Shorts', 'Sandals'] },
-  ]);
-  
+  const wardrobes = ref([]);
+  const dialog = ref(false);
+  const isEditMode = ref(false);
+  const currentWardrobeId = ref(null);
+  const newWardrobe = ref({
+    title: '',
+    description: ''
+  });
   const router = useRouter();
   
-  const openWardrobe = (wardrobeName) => {
-    router.push(`/wardrobe/${wardrobeName}`);
+  const fetchWardrobes = async () => {
+    try {
+      const token = store.state.authToken;
+      const response = await axios.get('/wardrobes', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      wardrobes.value = response.data.wardrobes;
+    } catch (error) {
+      console.error('Failed to fetch wardrobes:', error);
+    }
   };
   
-  const addClothes = (wardrobeId) => {
-    // Logic to add clothes to the specified wardrobe
-    console.log(`Add clothes to wardrobe with ID: ${wardrobeId}`);
+  const openWardrobe = (wardrobeId, wardrobeTitle) => {
+    router.push({ name: 'WardrobeDetails', params: { wardrobeId } });
   };
   
-  const editWardrobe = (wardrobeId) => {
-    // Logic to edit the specified wardrobe
-    console.log(`Edit wardrobe with ID: ${wardrobeId}`);
+  const removeWardrobe = async (wardrobeId) => {
+    try {
+      const token = store.state.authToken;
+      console.log(`Removing wardrobe with ID: ${wardrobeId}`);
+      await axios.delete(`/wardrobe/${wardrobeId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      wardrobes.value = wardrobes.value.filter(wardrobe => wardrobe.WardrobeID !== wardrobeId);
+    } catch (error) {
+      console.error('Failed to remove wardrobe:', error);
+    }
   };
   
-  const removeWardrobe = (wardrobeId) => {
-    // Logic to remove the specified wardrobe
-    console.log(`Remove wardrobe with ID: ${wardrobeId}`);
+  const addWardrobe = async () => {
+    try {
+      const token = store.state.authToken;
+      const response = await axios.post('/wardrobe', {
+        Title: newWardrobe.value.title,
+        Description: newWardrobe.value.description
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      wardrobes.value.push(response.data.wardrobe);
+      dialog.value = false;
+      newWardrobe.value.title = '';
+      newWardrobe.value.description = '';
+    } catch (error) {
+      console.error('Failed to add wardrobe:', error);
+    }
   };
   
-  const createWardrobe = () => {
-    // Logic to create a new wardrobe
-    console.log('Create a new wardrobe');
+  const openAddDialog = () => {
+    isEditMode.value = false;
+    newWardrobe.value.title = '';
+    newWardrobe.value.description = '';
+    dialog.value = true;
+  };
+  
+  const openEditDialog = (wardrobe) => {
+    isEditMode.value = true;
+    currentWardrobeId.value = wardrobe.WardrobeID;
+    newWardrobe.value.title = wardrobe.Title;
+    newWardrobe.value.description = wardrobe.Description;
+    dialog.value = true;
+  };
+  
+  const updateWardrobe = async () => {
+    try {
+      const token = store.state.authToken;
+      const response = await axios.put(`/wardrobe/${currentWardrobeId.value}`, {
+        Title: newWardrobe.value.title,
+        Description: newWardrobe.value.description
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      const index = wardrobes.value.findIndex(wardrobe => wardrobe.WardrobeID === currentWardrobeId.value);
+      if (index !== -1) {
+        wardrobes.value[index] = response.data.wardrobe;
+      }
+      dialog.value = false;
+      newWardrobe.value.title = '';
+      newWardrobe.value.description = '';
+    } catch (error) {
+      console.error('Failed to update wardrobe:', error);
+    }
   };
   
   onMounted(() => {
-    console.log('Wardrobes:', wardrobes.value);
+    fetchWardrobes();
   });
   </script>
   
@@ -98,6 +194,42 @@
   
   .text-white {
     color: white;
+  }
+  
+  .centered-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+  }
+  
+  .centered-card {
+    width: 75vw;
+    height: 50vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .text-center {
+    text-align: center;
+  }
+  
+  .custom-width {
+    width: 80%;
+  }
+  
+  .input-center {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .large-btn {
+    font-size: 1.2em;
+    padding: 0.75em 1.5em;
   }
   </style>
   

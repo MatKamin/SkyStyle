@@ -6,6 +6,10 @@ use App\Http\Controllers\PasswordGeneratorController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\WardrobeController;
+use App\Http\Controllers\ClothController;
+use App\Http\Controllers\TypeController;
+
 
 /**
  * USER MANAGEMENT
@@ -28,12 +32,38 @@ Route::middleware('auth:api')->group(function () {
 Route::get('/get-coords-for-city', [LocationController::class, 'getCoordsForCity']);
 Route::get('/get-city-from-coords', [LocationController::class, 'getCityFromCoords']);
 
+/**
+ * WARDROBE
+ */
+Route::middleware('auth:api')->group(function () {
+    Route::post('wardrobe', [WardrobeController::class, 'addWardrobe']);
+    Route::put('wardrobe/{wardrobeId}', [WardrobeController::class, 'editWardrobe']);
+    Route::delete('wardrobe/{wardrobeId}', [WardrobeController::class, 'removeWardrobe']);
+    Route::get('wardrobes', [WardrobeController::class, 'getAllWardrobes']);
+});
+
+/**
+ * CLOTHES
+ */
+Route::middleware('auth:api')->group(function () {
+    Route::post('clothes', [ClothController::class, 'addCloth']);
+    Route::get('clothes/{clothId}', [ClothController::class, 'getCloth']);
+    Route::post('clothes/{clothId}', [ClothController::class, 'editCloth']);
+    Route::delete('clothes/{clothId}', [ClothController::class, 'removeCloth']);
+    Route::get('wardrobe/{wardrobeId}/all-clothes', [ClothController::class, 'getClothesByWardrobe']);
+});
+
+/**
+ * TYPES
+ */
+Route::middleware('auth:api')->group(function () {
+    Route::get('types', [TypeController::class, 'getTypes']);
+});
 
 /**
  * WEATHER
  */
 Route::get('/weather', [WeatherController::class, 'getWeatherByCoordinates']);
-
 
 /**
  * EXAMPLE ROUTES

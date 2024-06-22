@@ -19,7 +19,7 @@ const routes = [
   { path: '/shop', name: 'Shop', component: Shop },
   { path: '/weather', name: 'Weather', component: Weather },
   { path: '/profile', name: 'Profile', component: Profile },
-  { path: '/wardrobe/:wardrobeName', name: 'WardrobeDetails', component: WardrobeDetails },
+  { path: '/wardrobe/:wardrobeId', name: 'WardrobeDetails', component: WardrobeDetails },
 ];
 
 const router = createRouter({
