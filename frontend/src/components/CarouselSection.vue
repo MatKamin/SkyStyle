@@ -14,7 +14,7 @@
         padding
         arrows
         height="300px"
-        class="bg-black text-white shadow-1"
+        class="text-white shadow-1 carousels"
       >
         <q-carousel-slide name="style" class="column no-wrap flex-center">
           <h3>Intelligent Wardrobe Management</h3>
@@ -54,5 +54,9 @@
   border-radius: 25px;
 }
 
+.carousels {
+        background-color: #444444;
+        box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
+    }
   </style>
   

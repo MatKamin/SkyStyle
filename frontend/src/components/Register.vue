@@ -2,7 +2,7 @@
   <div>
     <NavigationBar></NavigationBar>
     <div class="d-flex justify-content-center align-items-center min-vh-100">
-      <b-card class="w-50 p-3 card-custom">
+      <b-card class="w-50 p-3 card-custom text-white">
         <h1 class="text-center mb-4">Sign Up</h1>
         <b-form @submit.prevent="onSubmit" class="form-custom" novalidate>
           <b-form-group
@@ -18,7 +18,7 @@
               type="email"
               placeholder="Enter email"
               required
-              class="input-custom"
+              class="input-custom text-white"
               :state="emailState"
             ></b-form-input>
           </b-form-group>
@@ -35,7 +35,7 @@
               type="text"
               placeholder="Enter username"
               required
-              class="input-custom"
+              class="input-custom text-white"
               :state="usernameState"
             ></b-form-input>
           </b-form-group>
@@ -52,7 +52,7 @@
               type="password"
               placeholder="Enter password"
               required
-              class="input-custom"
+              class="input-custom text-white"
               :state="passwordState"
             ></b-form-input>
           </b-form-group>
@@ -69,7 +69,7 @@
               type="password"
               placeholder="Confirm password"
               required
-              class="input-custom"
+              class="input-custom text-white"
               :state="passwordConfirmState"
             ></b-form-input>
           </b-form-group>
@@ -80,6 +80,9 @@
             </ul>
           </div>
         </b-form>
+        <p class="text-center mt-3">
+          Already have an account? <a href="/login" class="text-primary">Log In here</a>
+        </p>
       </b-card>
     </div>
   </div>
@@ -159,17 +162,14 @@ const onSubmit = async () => {
   min-height: 100vh;
 }
 
-.text-center {
-  color: black;
-}
-
 .card-custom {
-  background-color: azure;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: hsla(0, 0%, 100%, 0.144);
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
 }
 
-.input-custom {
-  color: black;
+
+::placeholder {
+  color: hsla(0, 0%, 100%, 0.648);
 }
 
 .form-group-custom {

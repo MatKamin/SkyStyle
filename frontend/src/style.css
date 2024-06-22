@@ -21,3 +21,7 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.text-link {
+  cursor: pointer;
+}

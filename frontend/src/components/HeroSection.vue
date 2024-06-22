@@ -3,10 +3,32 @@
       <h1>Perfect <span class="highlight">Outfits for Any Forecast</span></h1>
       <p class="fs-4">The wardrobe you love, on a platform designed to help you dress smartly and quickly.</p>
       <br/><br/><br/>
-      <button class="btn btn-primary rounded-pill btn-custom btn-lg">Learn More!</button>
+      <button class="btn btn-primary rounded-pill btn-custom btn-lg" @click="goToRegister">Join Now!</button>
     </div>
   </template>
   
+  <script>
+    import { useRouter } from 'vue-router';
+
+    export default {
+      setup() {
+        const router = useRouter();
+          
+        const goToRegister = () => {
+          router.push('/register');
+        };
+    
+        const goToLogin = () => {
+          router.push('/login');
+        };
+
+        return {
+          goToRegister,
+          goToLogin
+        };
+      }
+    }
+  </script>
   <style scoped>
   .hero-section {
     color: white;

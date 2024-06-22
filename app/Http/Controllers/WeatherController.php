@@ -18,4 +18,21 @@ class WeatherController extends Controller
 
         return $response->json();
     }
+
+    public function getWeatherByCoordinates(Request $request)
+    {
+        $latitude = $request->input('latitude');
+        $longitude = $request->input('longitude');
+
+        $client = new Client();
+        $url = "https://api.open-meteo.com/v1/forecast?latitude={$latitude}&longitude={$longitude}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto";
+
+        try {
+            $response = $client->request('GET', $url);
+            $data = json_decode($response->getBody(), true);
+            return response()->json($data);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch weather data'], 500);
+        }
+    }
 }
