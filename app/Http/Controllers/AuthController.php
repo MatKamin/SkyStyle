@@ -12,11 +12,22 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
+        $messages = [
+            'email.required' => 'Email is required.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.unique' => 'This email is already registered.',
+            'name.required' => 'Username is required.',
+            'name.unique' => 'This username is already taken.',
+            'password.required' => 'Password is required.',
+            'password.min' => 'Password must be at least 8 characters.',
+            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.'
+        ];
+
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|unique:users',
+            'email' => ['required', 'email', 'unique:users', 'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/'],
             'name' => 'required|unique:users',
-            'password' => 'required|min:6',
-        ]);
+            'password' => ['required', 'min:8', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/']
+        ], $messages);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
@@ -32,6 +43,8 @@ class AuthController extends Controller
 
         return response()->json(['token' => $token], 200);
     }
+
+
 
     public function login(Request $request)
     {

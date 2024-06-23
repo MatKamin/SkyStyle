@@ -19,6 +19,7 @@ import './style.css';
 import App from './App.vue';
 import router from './router';
 import axios from './axiosConfig';
+import useVuelidate from '@vuelidate/core';
 
 const app = createApp(App);
 
@@ -36,5 +37,6 @@ app.component('BFormInput', BFormInput);
 app.component('BButton', BButton);
 
 app.use(router);
+app.use(useVuelidate);
 
 app.mount('#app');

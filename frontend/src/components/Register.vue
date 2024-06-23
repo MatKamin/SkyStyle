@@ -3,7 +3,7 @@
     <NavigationBar></NavigationBar>
     <div class="d-flex justify-content-center align-items-center min-vh-100">
       <b-card class="w-50 p-3 card-custom text-white">
-        <h1 class="text-center mb-4">Sign Up</h1>
+        <h1 class="text-center mb-4 signup-header">Sign Up</h1>
         <b-form @submit.prevent="onSubmit" class="form-custom" novalidate>
           <b-form-group
             label="Email"
@@ -88,12 +88,17 @@
   </div>
 </template>
 
+
+
 <script setup>
 import { reactive, computed, ref } from 'vue';
 import NavigationBar from './NavigationBar.vue';
 import axios from '../axiosConfig';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
 const form = reactive({
   email: '',
@@ -108,7 +113,7 @@ const formSubmitted = ref(false);
 const emailState = computed(() => {
   if (!formSubmitted.value) return null;
   if (!form.email) return false;
-  return /.+@.+\..+/.test(form.email) ? true : false;
+  return emailRegex.test(form.email) ? true : false;
 });
 
 const usernameState = computed(() => {
@@ -118,13 +123,12 @@ const usernameState = computed(() => {
 
 const passwordState = computed(() => {
   if (!formSubmitted.value) return null;
-  return form.password ? true : false;
+  return passwordRegex.test(form.password) ? true : false;
 });
 
 const passwordConfirmState = computed(() => {
   if (!formSubmitted.value) return null;
-  if (!form.passwordConfirm) return false;
-  return form.password === form.passwordConfirm ? true : false;
+  return form.passwordConfirm === form.password ? true : false;
 });
 
 const store = useStore();
@@ -135,10 +139,11 @@ const onSubmit = async () => {
   serverErrors.value = null;
   if (emailState.value && usernameState.value && passwordState.value && passwordConfirmState.value) {
     try {
-      const response = await axios.post(`/register`, {
+      const response = await axios.post('/register', {
         email: form.email,
         name: form.username,
-        password: form.password
+        password: form.password,
+        passwordConfirm: form.passwordConfirm
       });
       const token = response.data.token;
       store.commit('setAuthToken', token);
@@ -147,15 +152,23 @@ const onSubmit = async () => {
 
       router.push({ name: 'Dashboard' });
     } catch (error) {
-      if (error.response && error.response.status === 422) {
-        serverErrors.value = Object.values(error.response.data.errors).flat();
+      if (error.response) {
+        if (error.response.status === 401) {
+          serverErrors.value = [error.response.data.error || 'An error occurred. Please try again.'];
+        } else if (error.response.status === 422) {
+          serverErrors.value = Object.values(error.response.data.errors).flat();
+        } else {
+          serverErrors.value = [error.response.data.message || 'An unexpected error occurred. Please try again later.'];
+        }
       } else {
         console.error('Error submitting form:', error);
+        serverErrors.value = ['An unexpected error occurred. Please try again later.'];
       }
     }
   }
 };
-</script>
+
+  </script>
 
 <style scoped>
 .min-vh-100 {
@@ -167,15 +180,60 @@ const onSubmit = async () => {
   box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
 }
 
-
 ::placeholder {
   color: hsla(0, 0%, 100%, 0.648);
 }
 
 .form-group-custom {
-  width: 50%;
+  width: 100%;
   margin-bottom: 1.5rem;
   margin-left: auto;
   margin-right: auto;
+}
+
+.signup-header {
+  font-size: 2.5rem;
+}
+
+@media (max-width: 1200px) {
+  .w-50 {
+    width: 70% !important;
+  }
+
+  .form-group-custom {
+    width: 80%;
+  }
+
+  .signup-header {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .w-50 {
+    width: 90% !important;
+  }
+
+  .form-group-custom {
+    width: 90%;
+  }
+
+  .signup-header {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .w-50 {
+    width: 95% !important;
+  }
+
+  .form-group-custom {
+    width: 95%;
+  }
+
+  .signup-header {
+    font-size: 1.5rem;
+  }
 }
 </style>
