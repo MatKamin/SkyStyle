@@ -3,7 +3,7 @@
       <NavigationBar></NavigationBar>
       <div class="d-flex justify-content-center align-items-center min-vh-100">
         <b-card class="w-50 p-3 card-custom text-white">
-          <h1 class="text-center mb-4">Log In</h1>
+          <h1 class="text-center mb-4 login-header">Log In</h1>
           <b-form @submit.prevent="onSubmit" class="form-custom" novalidate>
             <b-form-group
               label="Email"
@@ -116,6 +116,8 @@
   };
   </script>
   
+  
+  
   <style scoped>
   .min-vh-100 {
     min-height: 100vh;
@@ -131,10 +133,56 @@
   }
   
   .form-group-custom {
-    width: 50%;
+    width: 100%;
     margin-bottom: 1.5rem;
     margin-left: auto;
     margin-right: auto;
+  }
+  
+  .login-header {
+    font-size: 2.5rem;
+  }
+  
+  @media (max-width: 1200px) {
+    .w-50 {
+      width: 70% !important;
+    }
+  
+    .form-group-custom {
+      width: 80%;
+    }
+  
+    .login-header {
+      font-size: 2rem;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .w-50 {
+      width: 90% !important;
+    }
+  
+    .form-group-custom {
+      width: 90%;
+    }
+  
+    .login-header {
+      font-size: 1.75rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .w-50 {
+      width: 95% !important;
+    }
+  
+    .form-group-custom {
+      width: 95%;
+    }
+  
+    .login-header {
+      font-size: 1.5rem;
+    }
   }
   </style>
   
