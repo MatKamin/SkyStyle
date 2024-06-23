@@ -73,12 +73,17 @@ Route::middleware('auth:api')->group(function () {
 /**
  * WEATHER
  */
-Route::get('/weather', [WeatherController::class, 'getWeatherByCoordinates']);
+Route::get('/weather', [WeatherController::class, 'getWeather']);
+Route::get('/weather-xml', [WeatherController::class, 'getWeatherXML']);
+Route::get('/weather-coordinates', [WeatherController::class, 'getWeatherByCoordinates']);
+Route::get('/weather-coordinates-xml', [WeatherController::class, 'getWeatherByCoordinatesXML']);
+
+
+
 
 /**
  * EXAMPLE ROUTES
  */
-Route::get('/weather', [WeatherController::class, 'getWeather']);
 Route::get('/passwd', [PasswordGeneratorController::class, 'getPassword']);
 
 /**
