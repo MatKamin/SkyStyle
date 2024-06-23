@@ -184,49 +184,50 @@
   };
   
   const updateClothing = async () => {
-    try {
-      const token = store.state.authToken;
-  
-      const formData = new FormData();
-      formData.append('_method', 'PUT'); // Specify the HTTP method as PUT
-  
-      if (newClothing.value.title) {
-        formData.append('Title', newClothing.value.title);
-      }
-      if (newClothing.value.description) {
-        formData.append('Description', newClothing.value.description);
-      }
-      formData.append('LinkToBuy', newClothing.value.linkToBuy || 'none');
-      if (newClothing.value.typeId.TypeID) {
-        formData.append('TypeID', newClothing.value.typeId.TypeID);
-      }
-      if (newClothing.value.picture) {
-        formData.append('Picture', newClothing.value.picture);
-      }
-  
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      };
-  
-      const response = await axios.post(`/clothes/${currentClothingId.value}`, formData, config);
-  
-      const index = clothes.value.findIndex(clothing => clothing.ClothID === currentClothingId.value);
-      if (index !== -1) {
-        clothes.value[index] = response.data.cloth; // Update the local state with new data
-      }
-      closeDialog(); // Close dialog after successful update
-    } catch (error) {
-      console.error('Failed to update clothing:', error);
-  
-      // Log detailed error response
-      if (error.response && error.response.data) {
-        console.error('Error response data:', error.response.data);
-      }
+  try {
+    const token = store.state.authToken;
+
+    const formData = new FormData();
+    //formData.append('_method', 'PUT'); // Specify the HTTP method as PUT
+
+    if (newClothing.value.title) {
+      formData.append('Title', newClothing.value.title);
     }
-  };
+    if (newClothing.value.description) {
+      formData.append('Description', newClothing.value.description);
+    }
+    formData.append('LinkToBuy', newClothing.value.linkToBuy || 'none');
+    if (newClothing.value.typeId.TypeID) {
+      formData.append('TypeID', newClothing.value.typeId.TypeID);
+    }
+    if (newClothing.value.picture) {
+      formData.append('Picture', newClothing.value.picture);
+    }
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    };
+
+    const response = await axios.post(`/clothes/${currentClothingId.value}`, formData, config); // Keep using POST method
+
+    const index = clothes.value.findIndex(clothing => clothing.ClothID === currentClothingId.value);
+    if (index !== -1) {
+      clothes.value[index] = response.data.cloth; // Update the local state with new data
+    }
+    closeDialog(); // Close dialog after successful update
+  } catch (error) {
+    console.error('Failed to update clothing:', error);
+
+    // Log detailed error response
+    if (error.response && error.response.data) {
+      console.error('Error response data:', error.response.data);
+    }
+  }
+};
+
   
   const removeClothing = async (clothingId) => {
     try {

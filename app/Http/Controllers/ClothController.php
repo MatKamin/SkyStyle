@@ -56,6 +56,10 @@ class ClothController extends Controller
             return response()->json(['message' => 'Cloth not found'], 404);
         }
 
+        // Log all request data
+        error_log('Request Data: ' . print_r($request->all(), true));
+        error_log('Request Files: ' . print_r($request->allFiles(), true)); // Log all uploaded files
+
         $request->validate([
             'Picture' => 'sometimes|file|mimes:jpg,png,jpeg,gif|max:2048',
             'Description' => 'sometimes|string',
@@ -66,31 +70,69 @@ class ClothController extends Controller
 
         try {
             if ($request->hasFile('Picture')) {
-                if ($cloth->Picture && !str_contains($cloth->Picture, '/placeholders/')) {
+                // Log file information
+                error_log('File present in request: ' . print_r($request->file('Picture'), true));
+                
+                // Delete the old picture if it exists
+                if ($cloth->Picture) {
+                    // Log old picture URL
+                    error_log('Existing Picture URL: ' . $cloth->Picture);
+
+                    // Get the old file path
                     $oldFilePath = str_replace('/storage', 'public', $cloth->Picture);
+                    // Log old file path before deletion
+                    error_log('Old file path: ' . $oldFilePath);
+
+                    // Check if the old file exists in storage and delete it
                     if (Storage::exists($oldFilePath)) {
                         Storage::delete($oldFilePath);
+                        error_log('Old file deleted: ' . $oldFilePath);
+                    } else {
+                        error_log('Old file not found: ' . $oldFilePath);
                     }
                 }
 
+                // Store new picture
                 $filePath = $request->file('Picture')->store('public/clothes');
                 $fileUrl = Storage::url($filePath);
                 $cloth->Picture = $fileUrl;
+
+                // Log updated Picture URL
+                error_log('New Picture URL: ' . $cloth->Picture);
             }
 
+            // Using null coalescing operator to assign values if present
             $cloth->Description = $request->input('Description', $cloth->Description);
             $cloth->LinkToBuy = $request->input('LinkToBuy', $cloth->LinkToBuy);
             $cloth->Title = $request->input('Title', $cloth->Title);
             $cloth->TypeID = $request->input('TypeID', $cloth->TypeID);
 
+            // Log updates for other fields
+            error_log('Description updated: ' . $cloth->Description);
+            error_log('LinkToBuy updated: ' . $cloth->LinkToBuy);
+            error_log('Title updated: ' . $cloth->Title);
+            error_log('TypeID updated: ' . $cloth->TypeID);
+
+            // Save the updated cloth
             $cloth->save();
+
+            // Load the related type
             $cloth->load('type');
+
+            // Log the updated cloth
+            error_log('Cloth updated successfully: ' . print_r($cloth->toArray(), true));
 
             return response()->json(['message' => 'Cloth updated successfully', 'cloth' => $cloth], 200);
         } catch (\Exception $e) {
+            // Log any errors during the update process
+            error_log('Error updating cloth: ' . $e->getMessage());
+            error_log('Error Trace: ' . $e->getTraceAsString());
             return response()->json(['message' => 'Error updating cloth: ' . $e->getMessage()], 500);
         }
     }
+
+    
+    
 
     public function removeCloth($clothId)
     {
