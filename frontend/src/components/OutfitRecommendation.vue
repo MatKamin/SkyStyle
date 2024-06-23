@@ -23,7 +23,7 @@
             >
                 <div class="outfit-slide">
                     <div v-for="item in recommendation.items" :key="item.ClothID" class="q-mb-sm item-container">
-                        <img :src="item.Picture" :alt="item.Title" class="item-image" />
+                        <img :src="getFullImageUrl(item.Picture, item.TypeTitle)" :alt="item.Title" class="item-image" />
                         <div>{{ item.Title }}</div>
                     </div>
                     <div class="buttons-container">
@@ -56,17 +56,29 @@ const activeRecommendation = ref(0);
 const outfitRecommendations = ref([]);
 const noWardrobesFound = ref(false); // State to handle no wardrobes found
 
+const baseURL = 'http://127.0.0.1:8000/storage/clothes/';
+const placeholderURL = 'http://127.0.0.1:8000/storage/placeholders/';
+
+const getFullImageUrl = (path, typeTitle) => {
+    if (path.includes('/placeholders/')) {
+        return `${placeholderURL}${path.split('/').pop()}`;
+    }
+    return `${baseURL}${path.split('/').pop()}`;
+};
+
 const mapResponseToRecommendations = (data) => {
     const coreItems = data.core.map(item => ({
         ClothID: item.ClothID,
-        Picture: `http://127.0.0.1:8000/storage/clothes/${item.Picture.split('/').pop()}`,
-        Title: item.Title
+        Picture: getFullImageUrl(item.Picture, item.TypeTitle),
+        Title: item.Title,
+        TypeTitle: item.TypeTitle
     }));
 
     const extraItems = data.extras.map(item => ({
         ClothID: item.ClothID,
-        Picture: `http://127.0.0.1:8000/storage/clothes/${item.Picture.split('/').pop()}`,
-        Title: item.Title
+        Picture: getFullImageUrl(item.Picture, item.TypeTitle),
+        Title: item.Title,
+        TypeTitle: item.TypeTitle
     }));
 
     return [{
