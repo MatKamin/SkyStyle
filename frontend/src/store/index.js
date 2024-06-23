@@ -28,6 +28,13 @@ const store = createStore({
         state.user.location = location;
         localStorage.setItem('user', JSON.stringify(state.user));
       }
+    },
+    setCurrentWeather(state, { currentTemperature, isRainy }) {
+      if (state.user && state.user.location) {
+        state.user.location.currentTemperature = currentTemperature;
+        state.user.location.isRainy = isRainy;
+        localStorage.setItem('user', JSON.stringify(state.user));
+      }
     }
   },
   actions: {
@@ -36,7 +43,7 @@ const store = createStore({
         try {
           const response = await axios.get('/user', {
             headers: {
-              Authorization: `Bearer ${state.authToken}`
+              Authorization: `Bearer ${state.authToken}` //%%%
             }
           });
           const user = response.data;
@@ -66,7 +73,6 @@ const store = createStore({
         }
       }
     },
-
     async reverseGeocode({ commit, state }, { lat, lon }) {
       try {
         const response = await axios.get('/get-city-from-coords', {

@@ -61,6 +61,16 @@ Route::middleware('auth:api')->group(function () {
 });
 
 /**
+ * RECOMMENDATIONS
+ */
+Route::middleware('auth:api')->group(function () {
+    Route::post('wardrobe/all/outfit', [ClothController::class, 'getOutfitFromAllWardrobes']);
+    Route::post('wardrobe/{wardrobeId}/outfit', [ClothController::class, 'getOutfit']);
+});
+
+
+
+/**
  * WEATHER
  */
 Route::get('/weather', [WeatherController::class, 'getWeatherByCoordinates']);

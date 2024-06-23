@@ -30,101 +30,107 @@
         </q-carousel-slide>
       </q-carousel>
     </section>
-  </template>
-  
-  <script setup>
-  import { ref, onMounted } from 'vue';
-  import { QCarousel, QCarouselSlide, QIcon } from 'quasar';
-  import { useStore } from 'vuex';
-  import axios from 'axios';
-  
-  const activeSlide = ref(0);
-  const weatherForecasts = ref([]);
-  const store = useStore();
-  
-  const getWeatherDescription = (temperature, humidity) => {
-    if (humidity > 70) {
-      if (temperature > 25) return { description: 'Hot and Humid', icon: 'wb_sunny' };
-      if (temperature > 15) return { description: 'Warm and Humid', icon: 'cloud_queue' };
-      return { description: 'Cool and Humid', icon: 'umbrella' };
-    } else {
-      if (temperature > 25) return { description: 'Hot and Dry', icon: 'wb_sunny' };
-      if (temperature > 15) return { description: 'Warm and Dry', icon: 'wb_cloudy' };
-      return { description: 'Cool and Dry', icon: 'ac_unit' };
-    }
-  };
-  
-  const fetchWeatherForecasts = async (latitude, longitude) => {
-    try {
-      const response = await axios.get('/weather', {
-        params: {
-          latitude,
-          longitude,
-        },
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import { QCarousel, QCarouselSlide, QIcon } from 'quasar';
+import { useStore } from 'vuex';
+import axios from 'axios';
+
+const activeSlide = ref(0);
+const weatherForecasts = ref([]);
+const store = useStore();
+
+const getWeatherDescription = (temperature, humidity) => {
+  if (humidity > 70) {
+    if (temperature > 25) return { description: 'Hot and Humid', icon: 'wb_sunny' };
+    if (temperature > 15) return { description: 'Warm and Humid', icon: 'cloud_queue' };
+    return { description: 'Cool and Humid', icon: 'umbrella' };
+  } else {
+    if (temperature > 25) return { description: 'Hot and Dry', icon: 'wb_sunny' };
+    if (temperature > 15) return { description: 'Warm and Dry', icon: 'wb_cloudy' };
+    return { description: 'Cool and Dry', icon: 'ac_unit' };
+  }
+};
+
+const fetchWeatherForecasts = async (latitude, longitude) => {
+  try {
+    const response = await axios.get('/weather', {
+      params: {
+        latitude,
+        longitude,
+      },
+    });
+    const data = response.data;
+
+    console.log('Weather data:', data);
+
+    if (data.hourly && data.hourly.time && data.hourly.temperature_2m && data.hourly.relative_humidity_2m) {
+      const currentHour = new Date().getHours();
+      const startIndex = data.hourly.time.findIndex(time => new Date(time).getHours() === currentHour);
+
+      const currentTemperature = data.hourly.temperature_2m[startIndex];
+      const currentHumidity = data.hourly.relative_humidity_2m[startIndex];
+      const isRainy = currentHumidity > 70;
+
+      // Save current weather info to the store
+      store.commit('setCurrentWeather', { currentTemperature, isRainy });
+
+      weatherForecasts.value = data.hourly.time.slice(startIndex, startIndex + 10).map((time, index) => {
+        const temperature = data.hourly.temperature_2m[startIndex + index];
+        const humidity = data.hourly.relative_humidity_2m[startIndex + index];
+        const { description, icon } = getWeatherDescription(temperature, humidity);
+        const date = new Date(time).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const hour = new Date(time).toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+        return {
+          date,
+          time: hour,
+          temperature,
+          description,
+          icon,
+        };
       });
-      const data = response.data;
-  
-      console.log('Weather data:', data);
-  
-      if (data.hourly && data.hourly.time && data.hourly.temperature_2m && data.hourly.relative_humidity_2m) {
-        const currentHour = new Date().getHours();
-        const startIndex = data.hourly.time.findIndex(time => new Date(time).getHours() === currentHour);
-  
-        weatherForecasts.value = data.hourly.time.slice(startIndex, startIndex + 10).map((time, index) => {
-          const temperature = data.hourly.temperature_2m[startIndex + index];
-          const humidity = data.hourly.relative_humidity_2m[startIndex + index];
-          const { description, icon } = getWeatherDescription(temperature, humidity);
-          const date = new Date(time).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-          const hour = new Date(time).toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-          return {
-            date,
-            time: hour,
-            temperature,
-            description,
-            icon,
-          };
-        });
-      } else {
-        console.error('Unexpected response structure:', data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch weather forecasts:', error);
+    } else {
+      console.error('Unexpected response structure:', data);
     }
-  };
-  
-  onMounted(() => {
-    const { lat, lon } = store.state.user.location;
-    fetchWeatherForecasts(lat, lon);
-  });
-  </script>
-  
-  <style scoped>
-  .carousel {
-    width: 70%;
-    margin: auto;
+  } catch (error) {
+    console.error('Failed to fetch weather forecasts:', error);
   }
-  
-  .q-carousel, .q-panel-parent {
-    border-radius: 25px;
-  }
-  
-  .weather-slide {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .bg-dark {
-    background-color: #343a40;
-  }
-  
-  .text-white {
-    color: white;
-  }
-  
-  .carousels {
-    background-color: #444444;
-    box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
-  }
-  </style>
-  
+};
+
+onMounted(() => {
+  const { lat, lon } = store.state.user.location;
+  fetchWeatherForecasts(lat, lon);
+});
+</script>
+
+<style scoped>
+.carousel {
+  width: 70%;
+  margin: auto;
+}
+
+.q-carousel, .q-panel-parent {
+  border-radius: 25px;
+}
+
+.weather-slide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bg-dark {
+  background-color: #343a40;
+}
+
+.text-white {
+  color: white;
+}
+
+.carousels {
+  background-color: #444444;
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
+}
+</style>

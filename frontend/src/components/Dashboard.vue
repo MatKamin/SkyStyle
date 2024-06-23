@@ -7,7 +7,35 @@
         <template v-if="coordinates.lat !== null && coordinates.lon !== null">
           <WeatherForecast :coordinates="coordinates" />
           <q-separator class="seperator" color="white" inset />
-          <OutfitRecommendation :coordinates="coordinates" />
+
+          <!-- Centered Wardrobe Selection Dropdown -->
+          <div class="d-flex justify-content-center mb-3">
+            <div class="dropdown">
+              <button
+                class="btn btn-primary dropdown-toggle"
+                type="button"
+                id="dropdownMenuButton"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false"
+              >
+                {{ selectedWardrobeLabel }}
+              </button>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a
+                  class="dropdown-item text-link"
+                  v-for="wardrobe in wardrobeOptions"
+                  :key="wardrobe.id"
+                  @click="selectWardrobe(wardrobe)"
+                >
+                  {{ wardrobe.label }}
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ensure wardrobe-id is passed as a string -->
+          <OutfitRecommendation :coordinates="coordinates" :wardrobe-id="String(selectedWardrobe)" />
         </template>
         <template v-else>
           <p>Loading...</p>
@@ -35,7 +63,6 @@
 import { ref, onMounted, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
-import { QLayout, QPageContainer, QPage, QDialog, QInput, QBtn, QCard, QCardSection, QCardActions } from 'quasar';
 import NavigationBar from './NavigationBar.vue';
 import WeatherForecast from './WeatherForecast.vue';
 import OutfitRecommendation from './OutfitRecommendation.vue';
@@ -47,6 +74,23 @@ const router = useRouter();
 const coordinates = ref({ lat: null, lon: null });
 const dialog = ref(false);
 const city = ref('');
+
+const selectedWardrobe = ref('all');
+const selectedWardrobeLabel = ref('Use All Wardrobes');
+const wardrobeOptions = ref([{ id: 'all', label: 'Use All Wardrobes' }]);
+
+const baseURL = 'http://127.0.0.1:8000/storage/clothes/';
+const placeholderURL = 'http://127.0.0.1:8000/storage/placeholders/';
+
+const getFullImageUrl = (path, typeTitle) => {
+  if (!path) {
+    return `${placeholderURL}${typeTitle.toLowerCase()}.jpg`;
+  } else if (path.includes('/placeholders/')) {
+    return placeholderURL + path.split('/').pop();
+  } else {
+    return baseURL + path.split('/').pop();
+  }
+};
 
 const logout = async () => {
   try {
@@ -101,6 +145,34 @@ const fetchCityCoordinates = async () => {
   }
 };
 
+const fetchWardrobes = async () => {
+  try {
+    const token = store.state.authToken;
+    const response = await axios.get('/wardrobes', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    console.log('Wardrobes response:', response.data); // Log the response data
+    if (response.data.wardrobes && Array.isArray(response.data.wardrobes)) {
+      const wardrobes = response.data.wardrobes
+        .filter(wardrobe => wardrobe.clothes_count > 0) // Filter wardrobes with clothes_count > 0
+        .map(wardrobe => ({ id: wardrobe.WardrobeID, label: wardrobe.Title }));
+      wardrobeOptions.value = [{ id: 'all', label: 'Use All Wardrobes' }, ...wardrobes];
+    } else {
+      console.error('Unexpected response format:', response.data);
+    }
+  } catch (error) {
+    console.error('Failed to fetch wardrobes:', error);
+  }
+};
+
+const selectWardrobe = (wardrobe) => {
+  selectedWardrobe.value = wardrobe.id;
+  selectedWardrobeLabel.value = wardrobe.label;
+  // Handle wardrobe change logic if needed
+};
+
 watch(() => store.state.user?.location, (newVal) => {
   if (newVal && newVal.lat && newVal.lon) {
     coordinates.value.lat = newVal.lat;
@@ -118,6 +190,7 @@ onMounted(async () => {
     if (!user || !user.location || !user.location.lat || !user.location.lon) {
       fetchCoordinates();
     }
+    await fetchWardrobes(); // Fetch wardrobes when component is mounted
   } else {
     dialog.value = true;
   }
@@ -136,5 +209,13 @@ onMounted(async () => {
 .seperator {
   margin-top: 3vh;
   margin-bottom: 3vh;
+}
+
+.dropdown-menu {
+  background-color: white; /* Ensure dropdown menu background is white */
+}
+
+.dropdown-item {
+  background-color: white; /* Ensure dropdown item background is white */
 }
 </style>

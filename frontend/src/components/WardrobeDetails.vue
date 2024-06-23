@@ -15,7 +15,7 @@
                 <q-card-section>
                   <div class="row no-wrap items-center">
                     <div class="col-2">
-                      <q-img :src="getFullImageUrl(clothing.Picture)" class="item-image" />
+                      <q-img :src="getFullImageUrl(clothing.Picture, clothing.type.Title)" class="item-image" />
                     </div>
                     <div class="col-4">
                       <h4>{{ clothing.Title }}</h4>
@@ -66,6 +66,7 @@
   import store from '../store';
   
   const baseURL = 'http://127.0.0.1:8000/storage/clothes/';
+  const placeholderURL = 'http://127.0.0.1:8000/storage/placeholders/';
   
   const route = useRoute();
   const wardrobeId = ref(route.params.wardrobeId);
@@ -83,8 +84,14 @@
   });
   const types = ref([]);
   
-  const getFullImageUrl = (path) => {
-    return baseURL + path.split('/').pop();
+  const getFullImageUrl = (path, typeTitle) => {
+    if (!path) {
+      return `${placeholderURL}${typeTitle.toLowerCase()}.jpg`;
+    } else if (path.includes('/placeholders/')) {
+      return placeholderURL + path.split('/').pop();
+    } else {
+      return baseURL + path.split('/').pop();
+    }
   };
   
   const fetchClothes = async () => {
@@ -96,10 +103,6 @@
         }
       });
       clothes.value = response.data.clothes;
-      // Debug log for image paths
-      clothes.value.forEach(clothing => {
-        console.log('Image Path:', getFullImageUrl(clothing.Picture));
-      });
     } catch (error) {
       console.error('Failed to fetch clothes:', error);
     }
@@ -148,7 +151,6 @@
     newClothing.value.linkToBuy = 'none';
     newClothing.value.typeId = null;
   
-    // Reset file input
     const fileInput = document.querySelector('input[type="file"]');
     if (fileInput) {
       fileInput.value = '';
@@ -161,7 +163,9 @@
       const formData = new FormData();
       formData.append('Title', newClothing.value.title);
       formData.append('Description', newClothing.value.description);
-      formData.append('Picture', newClothing.value.picture); // File object
+      if (newClothing.value.picture) {
+        formData.append('Picture', newClothing.value.picture); // File object
+      }
       formData.append('LinkToBuy', 'none'); // Default value
       formData.append('TypeID', newClothing.value.typeId.TypeID);
       formData.append('WardrobeID', wardrobeId.value);
@@ -180,56 +184,49 @@
   };
   
   const updateClothing = async () => {
-  try {
-    const token = store.state.authToken;
-
-    const formData = new FormData();
-    formData.append('_method', 'PUT'); // Specify the HTTP method as PUT
-
-    if (newClothing.value.title) {
-      formData.append('Title', newClothing.value.title);
-    }
-    if (newClothing.value.description) {
-      formData.append('Description', newClothing.value.description);
-    }
-    formData.append('LinkToBuy', newClothing.value.linkToBuy || 'none');
-    if (newClothing.value.typeId.TypeID) {
-      formData.append('TypeID', newClothing.value.typeId.TypeID);
-    }
-    if (newClothing.value.picture) {
-      formData.append('Picture', newClothing.value.picture);
-    }
-
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'multipart/form-data'
+    try {
+      const token = store.state.authToken;
+  
+      const formData = new FormData();
+      formData.append('_method', 'PUT'); // Specify the HTTP method as PUT
+  
+      if (newClothing.value.title) {
+        formData.append('Title', newClothing.value.title);
       }
-    };
-
-    const response = await axios.post(`/clothes/${currentClothingId.value}`, formData, config);
-
-    const index = clothes.value.findIndex(clothing => clothing.ClothID === currentClothingId.value);
-    if (index !== -1) {
-      clothes.value[index] = response.data.cloth; // Update the local state with new data
+      if (newClothing.value.description) {
+        formData.append('Description', newClothing.value.description);
+      }
+      formData.append('LinkToBuy', newClothing.value.linkToBuy || 'none');
+      if (newClothing.value.typeId.TypeID) {
+        formData.append('TypeID', newClothing.value.typeId.TypeID);
+      }
+      if (newClothing.value.picture) {
+        formData.append('Picture', newClothing.value.picture);
+      }
+  
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      };
+  
+      const response = await axios.post(`/clothes/${currentClothingId.value}`, formData, config);
+  
+      const index = clothes.value.findIndex(clothing => clothing.ClothID === currentClothingId.value);
+      if (index !== -1) {
+        clothes.value[index] = response.data.cloth; // Update the local state with new data
+      }
+      closeDialog(); // Close dialog after successful update
+    } catch (error) {
+      console.error('Failed to update clothing:', error);
+  
+      // Log detailed error response
+      if (error.response && error.response.data) {
+        console.error('Error response data:', error.response.data);
+      }
     }
-    closeDialog(); // Close dialog after successful update
-  } catch (error) {
-    console.error('Failed to update clothing:', error);
-
-    // Log detailed error response
-    if (error.response && error.response.data) {
-      console.error('Error response data:', error.response.data);
-    }
-  }
-};
-
-
-
-
-
-
-
+  };
   
   const removeClothing = async (clothingId) => {
     try {
