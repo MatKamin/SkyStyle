@@ -1,60 +1,54 @@
 <template>
-    <div>
-      <q-parallax :height="500" :speed="0.5">
-        <template v-slot:media>
-          <img src="../assets/image.jpg">
-        </template>
-        <template v-slot:content>
-          <NavigationBar></NavigationBar>
-          <HeroSection></HeroSection>
-        </template>
-      </q-parallax>
-      <CarouselSection></CarouselSection>
-      <q-separator class="seperator" color="white" inset />
-      <AboutUs></AboutUs>
-      <q-separator class="seperator" color="white" inset />
-      <CallToActionSection></CallToActionSection>
+  <div>
+    <div class="hero-image">
+      <img src="../assets/image.jpg" class="hero-image-img">
+      <div class="hero-content">
+        <NavigationBar></NavigationBar>
+        <HeroSection></HeroSection>
+      </div>
     </div>
-  </template>
-  
-  <script setup>
-    import { ref, onMounted } from 'vue';
+    <CarouselSection></CarouselSection>
+    <hr class="separator" />
+    <AboutUs></AboutUs>
+    <hr class="separator" />
+    <CallToActionSection></CallToActionSection>
+  </div>
+</template>
 
-    import NavigationBar from './NavigationBar.vue';
-    import HeroSection from './HeroSection.vue';
-    import CarouselSection from './CarouselSection.vue';
-    import AboutUs from './AboutUs.vue';
-    import CallToActionSection from './CallToActionSection.vue';
-    
-    import axios from '../axiosConfig';
-  
-  </script>
-  
-  <style scoped>
-  
-  .q-parallax__content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .q-parallax__media > img, .q-parallax__media > video {
-    bottom: -90%;
-  }
-  
-  .q-parallax__media > img {
-    filter:brightness(0.4);
-  }
-  
-  .hero-section {
-    margin-bottom: 20px;
-  }
-  
-  .carousel-section {
-    margin-top: 20px;
-  }
-  
-  .seperator {
-    margin-top: 3vh;
-  }
-  </style>
+<script setup>
+import NavigationBar from './NavigationBar.vue';
+import HeroSection from './HeroSection.vue';
+import CarouselSection from './CarouselSection.vue';
+import AboutUs from './AboutUs.vue';
+import CallToActionSection from './CallToActionSection.vue';
+</script>
+
+<style scoped>
+.hero-image {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.hero-image-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.4);
+}
+
+.hero-content {
+  position: absolute;
+  z-index: 1;
+  color: white;
+  text-align: center;
+}
+
+.separator {
+  margin-top: 3vh;
+}
+</style>

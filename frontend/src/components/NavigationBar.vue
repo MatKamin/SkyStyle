@@ -1,44 +1,47 @@
 <template>
-  <header class="p-3 text-white">
+  <header class="p-3 text-white bg-primary">
     <div class="container-fluid">
-      <div class="d-flex flex-wrap align-items-center justify-content-between">
-        <!-- Logo Section -->
-        <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
+      <nav class="navbar navbar-expand-lg navbar-dark">
+        <a class="navbar-brand d-flex align-items-center" href="/">
           <img class="logo" src="../assets/Logo.svg" />
-          <span class="mr-6">SkyStyle</span>
+          <span class="ms-3">SkyStyle</span>
         </a>
-
-        <!-- Navigation Links -->
-        <ul class="nav me-auto mb-2 justify-content-center mb-md-0">
-          <template v-if="!isAuthenticated">
-            <li><a href="#" class="nav-link px-3 text-white fs-5 d-inline-block align-middle">Features</a></li>
-            <li><a href="#" class="nav-link px-3 text-white fs-5 d-inline-block align-middle">About Us</a></li>
-          </template>
-          <template v-else>
-            <li><a href="/dashboard" class="nav-link px-3 text-white fs-5 d-inline-block align-middle">Dashboard</a></li>
-            <li><a href="/wardrobes" class="nav-link px-3 text-white fs-5 d-inline-block align-middle">Your Wardrobes</a></li>
-            <li><a href="/shop" class="nav-link px-3 text-white fs-5 d-inline-block align-middle">Shop</a></li>
-            <li><a href="/weather" class="nav-link px-3 text-white fs-5 d-inline-block align-middle">Weather</a></li>
-          </template>
-        </ul>
-
-        <!-- Right-side Icons and Buttons -->
-        <div class="text-end d-flex align-items-center">
-          <template v-if="!isAuthenticated">
-            <span class="fs-5 me-4 d-inline-block align-middle text-link" @click="goToLogin">Log In</span>
-            <button type="button" class="fs-5 btn btn-custom rounded-pill" @click="goToRegister">Sign Up</button>
-          </template>
-          <template v-else>
-            <span class="ms-2 me-4 fs-5 text-link" @click="goToProfile">{{ userName }}</span>
-            <button class="btn btn-link p-0" @click="logout">
-              <i class="bi bi-box-arrow-right text-danger fs-4"></i>
-            </button>
-          </template>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <template v-if="!isAuthenticated">
+              <li class="nav-item"><a href="#" class="nav-link">Features</a></li>
+              <li class="nav-item"><a href="#" class="nav-link">About Us</a></li>
+            </template>
+            <template v-else>
+              <li class="nav-item"><a href="/dashboard" class="nav-link">Dashboard</a></li>
+              <li class="nav-item"><a href="/wardrobes" class="nav-link">Your Wardrobes</a></li>
+              <li class="nav-item"><a href="/shop" class="nav-link">Shop</a></li>
+              <li class="nav-item"><a href="/weather" class="nav-link">Weather</a></li>
+            </template>
+          </ul>
+          <div class="d-flex align-items-center align-right">
+            <template v-if="!isAuthenticated">
+              <span class="fs-6 me-4 d-inline-block align-middle text-link" @click="goToLogin">Log In</span>
+              <button type="button" class="fs-6 btn btn-custom rounded-pill" @click="goToRegister">Sign Up</button>
+            </template>
+            <template v-else>
+              <span class="ms-2 me-4 fs-6 text-link" @click="goToProfile">{{ userName }}</span>
+              <button class="btn btn-link p-0" @click="logout">
+                <i class="bi bi-box-arrow-right text-danger fs-4"></i>
+              </button>
+            </template>
+          </div>
         </div>
-      </div>
+      </nav>
     </div>
   </header>
 </template>
+
+
+
 
 <script setup>
 import { computed } from 'vue';
@@ -84,33 +87,44 @@ header {
   width: 100%;
   top: 0;
   left: 0;
+  z-index: 2;
 }
 
-a.d-flex.align-items-center {
+a.navbar-brand.d-flex.align-items-center {
   margin-right: 3rem;
 }
 
+h1 {
+  line-height: 0 !important;
+}
+
 img.logo {
-  height: 60px;
+  height: 40px; /* Adjusted height for better responsiveness */
   width: auto;
   vertical-align: middle;
+}
+
+.align-right {
+  justify-content: end;
 }
 
 .btn-custom {
   background-color: #23b6f5ac;
   border: none;
   color: white;
-  padding-right: 1vw;
-  padding-left: 1vw;
-}
-
-.nav-link {
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding: 0.5rem 1rem;
 }
 
 .text-end > span {
-  margin-right: 2rem;
+  margin-right: 1rem;
 }
 
+@media (max-width: 768px) {
+  .logo {
+    height: 30px; /* Smaller logo for smaller screens */
+  }
+  .text-end > span {
+    margin-right: 0.5rem; /* Reduce margin on smaller screens */
+  }
+}
 </style>

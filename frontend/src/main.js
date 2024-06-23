@@ -12,7 +12,7 @@ import '@quasar/extras/themify/themify.css';
 import '@quasar/extras/bootstrap-icons/bootstrap-icons.css';
 import 'bootstrap-vue-next/dist/bootstrap-vue-next.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import BootstrapVueNext from 'bootstrap-vue-next';
 import { BCard, BForm, BFormGroup, BFormInput, BButton } from 'bootstrap-vue-next';
 import './style.css';
@@ -27,7 +27,6 @@ app.use(Quasar, {
   plugins: {},
 });
 app.use(BootstrapVueNext);
-
 
 // Use BootstrapVueNext components
 app.component('BCard', BCard);
