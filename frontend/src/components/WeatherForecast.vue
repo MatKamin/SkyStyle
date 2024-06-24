@@ -16,7 +16,7 @@
       >
         <q-carousel-slide
           :name="index"
-          v-for="(forecast, index) in weatherForecasts"
+          v-for="(forecast, index) in displayedWeatherForecasts"
           :key="index"
           class="column no-wrap flex-center"
         >
@@ -33,14 +33,23 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { QCarousel, QCarouselSlide, QIcon } from 'quasar';
 import { useStore } from 'vuex';
+import { useWindowSize } from '@vueuse/core';
 import axios from 'axios';
 
 const activeSlide = ref(0);
 const weatherForecasts = ref([]);
 const store = useStore();
+
+const { width } = useWindowSize();
+
+// Compute the number of items to display based on screen width
+const displayedWeatherForecasts = computed(() => {
+  const maxItems = width.value < 768 ? 3 : width.value < 1024 ? 5 : 10; // Adjust numbers as needed
+  return weatherForecasts.value.slice(0, maxItems);
+});
 
 const getWeatherDescription = (temperature, humidity) => {
   if (humidity > 70) {
@@ -133,4 +142,7 @@ onMounted(() => {
   background-color: #444444;
   box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
 }
+
+
+
 </style>

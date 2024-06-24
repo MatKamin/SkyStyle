@@ -75,7 +75,7 @@ const router = useRouter();
 const coordinates = ref({ lat: null, lon: null });
 const dialog = ref(false);
 const city = ref('');
-const errorMessage = ref(''); // For displaying error messages
+const errorMessage = ref('');
 
 const selectedWardrobe = ref('all');
 const selectedWardrobeLabel = ref('Use All Wardrobes');

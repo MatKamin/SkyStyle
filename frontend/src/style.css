@@ -28,3 +28,8 @@ html, body {
 .text-link {
   cursor: pointer;
 }
+
+.q-btn.q-btn-item.non-selectable.no-outline.q-btn--flat.q-btn--round.text-white.q-btn--actionable.q-focusable.q-hoverable.q-btn--dense.q-carousel__navigation-icon.q-carousel__navigation-icon--inactive,
+.q-btn.q-btn-item.non-selectable.no-outline.q-btn--flat.q-btn--round.text-white.q-btn--actionable.q-focusable.q-hoverable.q-btn--dense.q-carousel__navigation-icon.q-carousel__navigation-icon--active {
+  align-items: center;
+}
