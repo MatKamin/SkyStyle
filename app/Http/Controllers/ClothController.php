@@ -132,11 +132,8 @@ class ClothController extends Controller
             return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'Error updating cloth: ' . $e->getMessage()], 500);
         }
     }
-    
-    
-    
 
-    public function removeCloth($clothId)
+    public function removeCloth(Request $request, $clothId)
     {
         $cloth = Cloth::find($clothId);
 
@@ -159,11 +156,8 @@ class ClothController extends Controller
             return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'Error removing cloth: ' . $e->getMessage()], 500);
         }
     }
-    
-    
 
-
-    public function getCloth($clothId)
+    public function getCloth(Request $request, $clothId)
     {
         $cloth = Cloth::with('type', 'wardrobe')->find($clothId);
 
@@ -174,9 +168,7 @@ class ClothController extends Controller
         return \App\Http\Helpers\ResponseFormatter::format($request, ['cloth' => $cloth], 200);
     }
 
-
-
-    public function getClothesByWardrobe($wardrobeId)
+    public function getClothesByWardrobe(Request $request, $wardrobeId)
     {
         $wardrobe = Wardrobe::find($wardrobeId);
 
@@ -188,7 +180,6 @@ class ClothController extends Controller
 
         return \App\Http\Helpers\ResponseFormatter::format($request, ['clothes' => $clothes], 200);
     }
-
 
     public function getOutfitFromAllWardrobes(Request $request)
     {
@@ -216,7 +207,6 @@ class ClothController extends Controller
         return $this->generateOutfit($request, $coreClothes, $temperature, $isRainy);
     }
 
-    
     public function getOutfit(Request $request, $wardrobeId)
     {
         // Validate the incoming request data
@@ -239,7 +229,6 @@ class ClothController extends Controller
         return $this->generateOutfit($request, $coreClothes, $temperature, $isRainy);
     }
 
-    
     private function organizeClothes($wardrobes)
     {
         $coreClothes = [
@@ -275,137 +264,135 @@ class ClothController extends Controller
     
         return ['core' => $coreClothes, 'accessories' => $accessoryClothes];
     }
-    
+
     private function generateOutfit(Request $request, $clothes, $temperature, $isRainy)
-{
-    try {
-        $coreOutfit = [
-            'upperBody' => null,
-            'lowerBody' => null,
-            'shoes' => null,
-            'outerwear' => null
-        ];
-        $extraOutfit = [];
-        $selectedTypes = [];
-        $coreClothes = $clothes['core'];
-        $accessoryClothes = $clothes['accessories'];
+    {
+        try {
+            $coreOutfit = [
+                'upperBody' => null,
+                'lowerBody' => null,
+                'shoes' => null,
+                'outerwear' => null
+            ];
+            $extraOutfit = [];
+            $selectedTypes = [];
+            $coreClothes = $clothes['core'];
+            $accessoryClothes = $clothes['accessories'];
 
-        // Function to select a random match based on temperature
-        function selectRandomMatch($clothes, $temperature, $isRainy, $umbrella = false) {
-            if (empty($clothes)) return null;
-            $filteredClothes = array_filter($clothes, function ($cloth) use ($temperature, $isRainy, $umbrella) {
+            // Function to select a random match based on temperature
+            function selectRandomMatch($clothes, $temperature, $isRainy, $umbrella = false) {
+                if (empty($clothes)) return null;
+                $filteredClothes = array_filter($clothes, function ($cloth) use ($temperature, $isRainy, $umbrella) {
+                    $type = $cloth->type;
+                    return $temperature >= $type->Temperature_min && $temperature <= $type->Temperature_max &&
+                        (!$isRainy || $type->isRainOkay || $umbrella);
+                });
+                if (empty($filteredClothes)) return null;
+                return $filteredClothes[array_rand($filteredClothes)];
+            }
+
+            // Check for umbrella
+            $hasUmbrella = false;
+            foreach ($accessoryClothes as $cloth) {
+                if ($cloth->type->Title == 'umbrella') {
+                    $extraOutfit[] = $cloth;
+                    $selectedTypes[] = $cloth->type->Title;
+                    $hasUmbrella = true;
+                    break;
+                }
+            }
+
+            // Check if a full body item is appropriate and should replace upper/lower body
+            $useFullBody = rand(0, 1); // Randomly decide whether to use a full-body item
+
+            if ($useFullBody && !empty($coreClothes['fullBody'])) {
+                $selectedFullBody = selectRandomMatch($coreClothes['fullBody'], $temperature, $isRainy, $hasUmbrella);
+                if ($selectedFullBody) {
+                    $selectedFullBody->avgTemp = ($selectedFullBody->type->Temperature_min + $selectedFullBody->type->Temperature_max) / 2;
+                    $coreOutfit['upperBody'] = $selectedFullBody;
+                    $coreOutfit['lowerBody'] = $selectedFullBody;
+                    $selectedTypes[] = $selectedFullBody->type->Title;
+                }
+            }
+
+            // Select core clothes if full body item was not selected
+            if (empty($coreOutfit['upperBody']) || empty($coreOutfit['lowerBody']) || empty($coreOutfit['shoes'])) {
+                foreach (['upperBody', 'lowerBody', 'shoes', 'outerwear'] as $coreType) {
+                    if (empty($coreOutfit[$coreType])) {
+                        $selectedCloth = selectRandomMatch($coreClothes[$coreType], $temperature, $isRainy, $hasUmbrella);
+                        if ($selectedCloth) {
+                            $selectedCloth->avgTemp = ($selectedCloth->type->Temperature_min + $selectedCloth->type->Temperature_max) / 2;
+                            $coreOutfit[$coreType] = $selectedCloth;
+                            $selectedTypes[] = $selectedCloth->type->Title;
+                        }
+                    }
+                }
+            }
+
+            // Ensure upperBody is selected if outerwear is chosen
+            if (!empty($coreOutfit['outerwear']) && empty($coreOutfit['upperBody'])) {
+                if (!empty($coreClothes['upperBody'])) {
+                    $selectedTop = $coreClothes['upperBody'][array_rand($coreClothes['upperBody'])];
+                    $selectedTop->avgTemp = ($selectedTop->type->Temperature_min + $selectedTop->type->Temperature_max) / 2;
+                    $coreOutfit['upperBody'] = $selectedTop;
+                    $selectedTypes[] = $selectedTop->type->Title;
+                } else {
+                    $coreOutfit['upperBody'] = (object)['message' => 'No suitable upperBody found for the given conditions'];
+                }
+            }
+
+            // Filter accessory clothes based on weather conditions and layering logic
+            foreach ($accessoryClothes as $cloth) {
+                if (count($extraOutfit) >= 3) break; // Limit to 3 accessories
+
                 $type = $cloth->type;
-                return $temperature >= $type->Temperature_min && $temperature <= $type->Temperature_max &&
-                       (!$isRainy || $type->isRainOkay || $umbrella);
-            });
-            if (empty($filteredClothes)) return null;
-            return $filteredClothes[array_rand($filteredClothes)];
-        }
 
-        // Check for umbrella
-        $hasUmbrella = false;
-        foreach ($accessoryClothes as $cloth) {
-            if ($cloth->type->Title == 'umbrella') {
-                $extraOutfit[] = $cloth;
-                $selectedTypes[] = $cloth->type->Title;
-                $hasUmbrella = true;
-                break;
-            }
-        }
-
-        // Check if a full body item is appropriate and should replace upper/lower body
-        $useFullBody = rand(0, 1); // Randomly decide whether to use a full-body item
-
-        if ($useFullBody && !empty($coreClothes['fullBody'])) {
-            $selectedFullBody = selectRandomMatch($coreClothes['fullBody'], $temperature, $isRainy, $hasUmbrella);
-            if ($selectedFullBody) {
-                $selectedFullBody->avgTemp = ($selectedFullBody->type->Temperature_min + $selectedFullBody->type->Temperature_max) / 2;
-                $coreOutfit['upperBody'] = $selectedFullBody;
-                $coreOutfit['lowerBody'] = $selectedFullBody;
-                $selectedTypes[] = $selectedFullBody->type->Title;
-            }
-        }
-
-        // Select core clothes if full body item was not selected
-        if (empty($coreOutfit['upperBody']) || empty($coreOutfit['lowerBody']) || empty($coreOutfit['shoes'])) {
-            foreach (['upperBody', 'lowerBody', 'shoes', 'outerwear'] as $coreType) {
-                if (empty($coreOutfit[$coreType])) {
-                    $selectedCloth = selectRandomMatch($coreClothes[$coreType], $temperature, $isRainy, $hasUmbrella);
-                    if ($selectedCloth) {
-                        $selectedCloth->avgTemp = ($selectedCloth->type->Temperature_min + $selectedCloth->type->Temperature_max) / 2;
-                        $coreOutfit[$coreType] = $selectedCloth;
-                        $selectedTypes[] = $selectedCloth->type->Title;
-                    }
-                }
-            }
-        }
-
-        // Ensure upperBody is selected if outerwear is chosen
-        if (!empty($coreOutfit['outerwear']) && empty($coreOutfit['upperBody'])) {
-            if (!empty($coreClothes['upperBody'])) {
-                $selectedTop = $coreClothes['upperBody'][array_rand($coreClothes['upperBody'])];
-                $selectedTop->avgTemp = ($selectedTop->type->Temperature_min + $selectedTop->type->Temperature_max) / 2;
-                $coreOutfit['upperBody'] = $selectedTop;
-                $selectedTypes[] = $selectedTop->type->Title;
-            } else {
-                $coreOutfit['upperBody'] = (object)['message' => 'No suitable upperBody found for the given conditions'];
-            }
-        }
-
-        // Filter accessory clothes based on weather conditions and layering logic
-        foreach ($accessoryClothes as $cloth) {
-            if (count($extraOutfit) >= 3) break; // Limit to 3 accessories
-
-            $type = $cloth->type;
-
-            // Skip if this type has already been selected or if it doesn't meet rain requirements
-            if (in_array($type->Title, $selectedTypes) || ($isRainy && !$type->isRainOkay && !$hasUmbrella)) {
-                continue;
-            }
-
-            // Calculate average temperature for the cloth type
-            $avgTemp = ($type->Temperature_min + $type->Temperature_max) / 2;
-
-            // Skip if the cloth is not suitable for the current temperature
-            if ($temperature < $type->Temperature_min || $temperature > $type->Temperature_max) {
-                continue;
-            }
-
-            // Ensure logical layering
-            if ($type->ParentTypeID) {
-                $foundParent = false;
-                foreach ($coreOutfit as $outfitCloth) {
-                    if ($outfitCloth && isset($outfitCloth->type) && $outfitCloth->type->TypeID == $type->ParentTypeID) {
-                        $foundParent = true;
-                        break;
-                    }
-                }
-                if (!$foundParent) {
+                // Skip if this type has already been selected or if it doesn't meet rain requirements
+                if (in_array($type->Title, $selectedTypes) || ($isRainy && !$type->isRainOkay && !$hasUmbrella)) {
                     continue;
                 }
+
+                // Calculate average temperature for the cloth type
+                $avgTemp = ($type->Temperature_min + $type->Temperature_max) / 2;
+
+                // Skip if the cloth is not suitable for the current temperature
+                if ($temperature < $type->Temperature_min || $temperature > $type->Temperature_max) {
+                    continue;
+                }
+
+                // Ensure logical layering
+                if ($type->ParentTypeID) {
+                    $foundParent = false;
+                    foreach ($coreOutfit as $outfitCloth) {
+                        if ($outfitCloth && isset($outfitCloth->type) && $outfitCloth->type->TypeID == $type->ParentTypeID) {
+                            $foundParent = true;
+                            break;
+                        }
+                    }
+                    if (!$foundParent) {
+                        continue;
+                    }
+                }
+
+                // Select the cloth with the average temperature closest to the current temperature
+                $cloth->avgTemp = $avgTemp;
+                $extraOutfit[] = $cloth;
+                $selectedTypes[] = $type->Title;
             }
 
-            // Select the cloth with the average temperature closest to the current temperature
-            $cloth->avgTemp = $avgTemp;
-            $extraOutfit[] = $cloth;
-            $selectedTypes[] = $type->Title;
+            return \App\Http\Helpers\ResponseFormatter::format($request, [
+                'core' => array_values(array_filter($coreOutfit)),
+                'extras' => array_values($extraOutfit)
+            ], 200);
+            
+        } catch (\Exception $e) {
+            // Log the exception for debugging
+            error_log('Error generating outfit: ' . $e->getMessage());
+            error_log('Error Trace: ' . $e->getTraceAsString());
+
+            return \App\Http\Helpers\ResponseFormatter::format($request, [
+                'message' => 'Error generating outfit: ' . $e->getMessage()
+            ], 500);
         }
-
-        return \App\Http\Helpers\ResponseFormatter::format($request, [
-            'core' => array_values(array_filter($coreOutfit)),
-            'extras' => array_values($extraOutfit)
-        ], 200);
-        
-    } catch (\Exception $e) {
-        // Log the exception for debugging
-        error_log('Error generating outfit: ' . $e->getMessage());
-        error_log('Error Trace: ' . $e->getTraceAsString());
-
-        return \App\Http\Helpers\ResponseFormatter::format($request, [
-            'message' => 'Error generating outfit: ' . $e->getMessage()
-        ], 500);
     }
-}
-
-
 }

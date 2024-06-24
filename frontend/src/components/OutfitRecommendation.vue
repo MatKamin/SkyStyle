@@ -17,7 +17,7 @@
         >
             <q-carousel-slide
                 :name="index"
-                v-for="(recommendation, index) in outfitRecommendations"
+                v-for="(recommendation, index) in displayedOutfitRecommendations"
                 :key="recommendation.id"
                 class="column no-wrap flex-center"
             >
@@ -44,11 +44,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { QCarousel, QCarouselSlide, QBtn } from 'quasar';
 import axios from 'axios';
 import store from '../store';
+import { useWindowSize } from '@vueuse/core';
 
 const props = defineProps({
     coordinates: Object,
@@ -69,6 +70,13 @@ const getFullImageUrl = (path, typeTitle) => {
     }
     return `${baseURL}${path.split('/').pop()}`;
 };
+
+const { width } = useWindowSize();
+
+const displayedOutfitRecommendations = computed(() => {
+    const maxItems = width.value < 768 ? 3 : width.value < 1024 ? 5 : 10; // Adjust numbers as needed
+    return outfitRecommendations.value.slice(0, maxItems);
+});
 
 const mapResponseToRecommendations = (data, index, notEnoughCoreItemsArray) => {
     const coreItems = data.core.map(item => ({
@@ -214,6 +222,7 @@ const useRecommendation = (recommendation) => {
 
 .item-image {
     height: 150px;
+    max-width: 150px;
     object-fit: cover;
     border-radius: 5px;
     margin-bottom: 5px;
