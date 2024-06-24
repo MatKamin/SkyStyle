@@ -12,7 +12,7 @@
             navigation
             padding
             arrows
-            height="700px"
+            height="1000px"
             class="carousels text-white shadow-1"
         >
             <q-carousel-slide
@@ -21,13 +21,16 @@
                 :key="recommendation.id"
                 class="column no-wrap flex-center"
             >
-                <div class="outfit-slide">
+                <!-- Message for not enough core items -->
+                <div v-if="notEnoughCoreItems[index] == 'invalid'" class="no-wardrobes-message">
+                    <p>Not enough Core Items in Wardrobe.</p>
+                </div>
+                <div v-if="notEnoughCoreItems[index] == 'valid'" class="outfit-slide">
                     <div v-for="item in recommendation.items" :key="item.ClothID" class="q-mb-sm item-container">
                         <img :src="getFullImageUrl(item.Picture, item.TypeTitle)" :alt="item.Title" class="item-image" />
                         <div>{{ item.Title }}</div>
                     </div>
                     <div class="buttons-container">
-                        <q-btn label="Use This Style" color="primary" @click="useRecommendation(recommendation)" class="q-mr-sm" />
                         <q-btn icon="refresh" color="primary" flat @click="refreshRecommendation" />
                     </div>
                 </div>
@@ -35,7 +38,7 @@
         </q-carousel>
         <!-- Message for no wardrobes found -->
         <div v-if="noWardrobesFound" class="no-wardrobes-message">
-            <p>No wardrobes found. Please add a wardrobe <router-link to="/wardrobes">here</router-link>.</p>
+            <p>No wardrobes and/or clothes found. <router-link to="/wardrobes">Add here</router-link>.</p>
         </div>
     </section>
 </template>
@@ -52,9 +55,10 @@ const props = defineProps({
     wardrobeId: String
 });
 
-const activeRecommendation = ref(0);
+const activeRecommendation = ref(store.state.indexCarousel); // Initialize with the value from the store
 const outfitRecommendations = ref([]);
-const noWardrobesFound = ref(false); // State to handle no wardrobes found
+const noWardrobesFound = ref(false);
+const notEnoughCoreItems = ref([]); // Changed to an array
 
 const baseURL = 'http://127.0.0.1:8000/storage/clothes/';
 const placeholderURL = 'http://127.0.0.1:8000/storage/placeholders/';
@@ -66,13 +70,19 @@ const getFullImageUrl = (path, typeTitle) => {
     return `${baseURL}${path.split('/').pop()}`;
 };
 
-const mapResponseToRecommendations = (data) => {
+const mapResponseToRecommendations = (data, index, notEnoughCoreItemsArray) => {
     const coreItems = data.core.map(item => ({
         ClothID: item.ClothID,
         Picture: getFullImageUrl(item.Picture, item.TypeTitle),
         Title: item.Title,
         TypeTitle: item.TypeTitle
     }));
+
+    notEnoughCoreItemsArray[index] = coreItems.length < 3 ? 'invalid' : 'valid';
+
+    if (notEnoughCoreItemsArray[index] === 'invalid') {
+        return { id: Date.now(), items: [] };
+    }
 
     const extraItems = data.extras.map(item => ({
         ClothID: item.ClothID,
@@ -81,10 +91,10 @@ const mapResponseToRecommendations = (data) => {
         TypeTitle: item.TypeTitle
     }));
 
-    return [{
+    return {
         id: Date.now(),  // Unique identifier for each recommendation
         items: coreItems.concat(extraItems)
-    }];
+    };
 };
 
 const fetchOutfitRecommendations = async () => {
@@ -92,26 +102,38 @@ const fetchOutfitRecommendations = async () => {
         console.log('store.state.user.location:', store.state.user.location);
         console.log('props:', props);
 
-        const { currentTemperature, isRainy } = store.state.user.location || {};
-
-        if (currentTemperature === undefined || isRainy === undefined) {
-            console.error('Current temperature or rainy status is not defined.');
-            return;
-        }
-
         // Clear the current list before fetching new recommendations
         outfitRecommendations.value = [];
+        let localNotEnoughCoreItems = []; // Local array to collect results
 
-        const response = await axios.post(`/wardrobe/${props.wardrobeId}/outfit`, {
-            temperature: currentTemperature, 
-            isRainy: isRainy 
-        }, {
-            headers: {
-                Authorization: `Bearer ${store.state.authToken}`
-            }
-        });
+        const forecasts = store.state.weatherForecasts; // Get 10-day weather forecast from the store
 
-        outfitRecommendations.value = mapResponseToRecommendations(response.data);
+        console.log('Forecasts:', forecasts);
+
+        if (!Array.isArray(forecasts) || forecasts.length === 0) {
+            throw new Error('Weather forecasts are not available or not an array');
+        }
+
+        for (const [index, forecast] of forecasts.entries()) {
+            const { temperature, humidity } = forecast;
+            const isRainy = humidity > 70; // Determine if it's rainy based on humidity
+
+            const response = await axios.post(`/wardrobe/${props.wardrobeId}/outfit`, {
+                temperature: temperature,
+                isRainy: isRainy
+            }, {
+                headers: {
+                    Authorization: `Bearer ${store.state.authToken}` //%%% Insert the authorization token
+                }
+            });
+
+            const recommendations = mapResponseToRecommendations(response.data, index, localNotEnoughCoreItems);
+            outfitRecommendations.value.push(recommendations);
+        }
+
+        // Update the reactive array once all data is processed
+        notEnoughCoreItems.value = localNotEnoughCoreItems;
+
         noWardrobesFound.value = false; // Reset the no wardrobes found state
     } catch (error) {
         console.error('Failed to fetch outfit recommendations:', error);
@@ -121,10 +143,32 @@ const fetchOutfitRecommendations = async () => {
     }
 };
 
+// Fetch recommendations when the component is mounted
 onMounted(() => {
-    fetchOutfitRecommendations();
+    // Watch for changes in the weather forecasts and fetch recommendations once they are available
+    const unwatch = watch(
+        () => store.state.weatherForecasts,
+        (newForecasts) => {
+            if (newForecasts && Array.isArray(newForecasts) && newForecasts.length > 0) {
+                fetchOutfitRecommendations();
+                unwatch(); // Stop watching once the data is fetched
+            }
+        },
+        { immediate: true }
+    );
 });
 
+// Watch for changes in activeRecommendation and update the store
+watch(activeRecommendation, (newValue) => {
+    store.commit('setIndexCarousel', newValue);
+});
+
+// Watch for changes in store's indexCarousel and update activeRecommendation
+watch(() => store.state.indexCarousel, (newValue) => {
+    activeRecommendation.value = newValue;
+});
+
+// Fetch recommendations when the wardrobe ID changes
 watch(() => props.wardrobeId, (newWardrobeId) => {
     if (newWardrobeId) {
         fetchOutfitRecommendations();

@@ -211,15 +211,35 @@ class ClothController extends Controller
             return response()->json(['message' => 'No wardrobes found'], 404);
         }
     
-        // Initialize arrays to store core and extra outfit parts
-        $coreOutfit = [
-            'upperBody' => null,
-            'lowerBody' => null,
-            'shoes' => null,
-            'outerwear' => null
-        ];
-        $extraOutfit = [];
-        $selectedTypes = [];
+        $coreClothes = $this->organizeClothes($wardrobes);
+        
+        return $this->generateOutfit($coreClothes, $temperature, $isRainy);
+    }
+    
+    public function getOutfit(Request $request, $wardrobeId)
+    {
+        // Validate the incoming request data
+        $request->validate([
+            'temperature' => 'required|numeric',
+            'isRainy' => 'required|boolean',
+        ]);
+    
+        $temperature = $request->input('temperature');
+        $isRainy = $request->input('isRainy');
+    
+        // Fetch the wardrobe with clothes and their types
+        $wardrobe = Wardrobe::with('clothes.type')->find($wardrobeId);
+        if (!$wardrobe) {
+            return response()->json(['message' => 'Wardrobe not found'], 404);
+        }
+    
+        $coreClothes = $this->organizeClothes(collect([$wardrobe]));
+        
+        return $this->generateOutfit($coreClothes, $temperature, $isRainy);
+    }
+    
+    private function organizeClothes($wardrobes)
+    {
         $coreClothes = [
             'upperBody' => [],
             'lowerBody' => [],
@@ -251,6 +271,22 @@ class ClothController extends Controller
             }
         }
     
+        return ['core' => $coreClothes, 'accessories' => $accessoryClothes];
+    }
+    
+    private function generateOutfit($clothes, $temperature, $isRainy)
+    {
+        $coreOutfit = [
+            'upperBody' => null,
+            'lowerBody' => null,
+            'shoes' => null,
+            'outerwear' => null
+        ];
+        $extraOutfit = [];
+        $selectedTypes = [];
+        $coreClothes = $clothes['core'];
+        $accessoryClothes = $clothes['accessories'];
+    
         // Function to select a random match based on temperature
         function selectRandomMatch($clothes, $temperature, $isRainy, $umbrella = false) {
             if (empty($clothes)) return null;
@@ -263,11 +299,22 @@ class ClothController extends Controller
             return $filteredClothes[array_rand($filteredClothes)];
         }
     
+        // Check for umbrella
+        $hasUmbrella = false;
+        foreach ($accessoryClothes as $cloth) {
+            if ($cloth->type->Title == 'umbrella') {
+                $extraOutfit[] = $cloth;
+                $selectedTypes[] = $cloth->type->Title;
+                $hasUmbrella = true;
+                break;
+            }
+        }
+    
         // Check if a full body item is appropriate and should replace upper/lower body
         $useFullBody = rand(0, 1); // Randomly decide whether to use a full-body item
     
         if ($useFullBody && !empty($coreClothes['fullBody'])) {
-            $selectedFullBody = selectRandomMatch($coreClothes['fullBody'], $temperature, $isRainy);
+            $selectedFullBody = selectRandomMatch($coreClothes['fullBody'], $temperature, $isRainy, $hasUmbrella);
             if ($selectedFullBody) {
                 $selectedFullBody->avgTemp = ($selectedFullBody->type->Temperature_min + $selectedFullBody->type->Temperature_max) / 2;
                 $coreOutfit['upperBody'] = $selectedFullBody;
@@ -280,7 +327,7 @@ class ClothController extends Controller
         if (empty($coreOutfit['upperBody']) || empty($coreOutfit['lowerBody']) || empty($coreOutfit['shoes'])) {
             foreach (['upperBody', 'lowerBody', 'shoes', 'outerwear'] as $coreType) {
                 if (empty($coreOutfit[$coreType])) {
-                    $selectedCloth = selectRandomMatch($coreClothes[$coreType], $temperature, $isRainy);
+                    $selectedCloth = selectRandomMatch($coreClothes[$coreType], $temperature, $isRainy, $hasUmbrella);
                     if ($selectedCloth) {
                         $selectedCloth->avgTemp = ($selectedCloth->type->Temperature_min + $selectedCloth->type->Temperature_max) / 2;
                         $coreOutfit[$coreType] = $selectedCloth;
@@ -299,17 +346,6 @@ class ClothController extends Controller
                 $selectedTypes[] = $selectedTop->type->Title;
             } else {
                 $coreOutfit['upperBody'] = (object)['message' => 'No suitable upperBody found for the given conditions'];
-            }
-        }
-    
-        // Check for umbrella
-        $hasUmbrella = false;
-        foreach ($accessoryClothes as $cloth) {
-            if ($cloth->type->Title == 'umbrella') {
-                $extraOutfit[] = $cloth;
-                $selectedTypes[] = $cloth->type->Title;
-                $hasUmbrella = true;
-                break;
             }
         }
     
@@ -358,169 +394,7 @@ class ClothController extends Controller
         ], 200);
     }
     
-
-
-    public function getOutfit(Request $request, $wardrobeId)
-{
-    // Validate the incoming request data
-    $request->validate([
-        'temperature' => 'required|numeric',
-        'isRainy' => 'required|boolean',
-    ]);
-
-    $temperature = $request->input('temperature');
-    $isRainy = $request->input('isRainy');
-
-    // Fetch the wardrobe with clothes and their types
-    $wardrobe = Wardrobe::with('clothes.type')->find($wardrobeId);
-    if (!$wardrobe) {
-        return response()->json(['message' => 'Wardrobe not found'], 404);
-    }
-
-    // Initialize arrays to store core and extra outfit parts
-    $coreOutfit = [
-        'upperBody' => null,
-        'lowerBody' => null,
-        'shoes' => null,
-        'outerwear' => null
-    ];
-    $extraOutfit = [];
-    $selectedTypes = [];
-    $coreClothes = [
-        'upperBody' => [],
-        'lowerBody' => [],
-        'shoes' => [],
-        'outerwear' => [],
-        'fullBody' => []
-    ];
-    $accessoryClothes = [];
-
-    // Separate core clothing items from accessories
-    foreach ($wardrobe->clothes as $cloth) {
-        if (isset($cloth->type)) {
-            $type = $cloth->type;
-            if (in_array($type->Title, ['top', 'shirt', 'blouse'])) {
-                $coreClothes['upperBody'][] = $cloth;
-            } elseif (in_array($type->Title, ['pants', 'skirt', 'shorts'])) {
-                $coreClothes['lowerBody'][] = $cloth;
-            } elseif ($type->Title == 'shoes') {
-                $coreClothes['shoes'][] = $cloth;
-            } elseif (in_array($type->Title, ['outerwear', 'rainjacket', 'leather jacket', 'down jacket', 'parka', 'fleece jacket', 'windbreaker'])) {
-                $coreClothes['outerwear'][] = $cloth;
-            } elseif (in_array($type->Title, ['dress', 'swimwear', 'jumpsuit', 'romper'])) {
-                $coreClothes['fullBody'][] = $cloth;
-            } else {
-                $accessoryClothes[] = $cloth;
-            }
-        }
-    }
-
-    // Function to select a random match based on temperature
-    function selectRandomMatch($clothes, $temperature, $isRainy, $umbrella = false) {
-        if (empty($clothes)) return null;
-        $filteredClothes = array_filter($clothes, function ($cloth) use ($temperature, $isRainy, $umbrella) {
-            $type = $cloth->type;
-            return $temperature >= $type->Temperature_min && $temperature <= $type->Temperature_max &&
-                   (!$isRainy || $type->isRainOkay || $umbrella);
-        });
-        if (empty($filteredClothes)) return null;
-        return $filteredClothes[array_rand($filteredClothes)];
-    }
-
-    // Check if a full body item is appropriate and should replace upper/lower body
-    $useFullBody = rand(0, 1); // Randomly decide whether to use a full-body item
-
-    if ($useFullBody && !empty($coreClothes['fullBody'])) {
-        $selectedFullBody = selectRandomMatch($coreClothes['fullBody'], $temperature, $isRainy);
-        if ($selectedFullBody) {
-            $selectedFullBody->avgTemp = ($selectedFullBody->type->Temperature_min + $selectedFullBody->type->Temperature_max) / 2;
-            $coreOutfit['upperBody'] = $selectedFullBody;
-            $coreOutfit['lowerBody'] = $selectedFullBody;
-            $selectedTypes[] = $selectedFullBody->type->Title;
-        }
-    }
-
-    // Select core clothes if full body item was not selected
-    if (empty($coreOutfit['upperBody']) || empty($coreOutfit['lowerBody']) || empty($coreOutfit['shoes'])) {
-        foreach (['upperBody', 'lowerBody', 'shoes', 'outerwear'] as $coreType) {
-            if (empty($coreOutfit[$coreType])) {
-                $selectedCloth = selectRandomMatch($coreClothes[$coreType], $temperature, $isRainy);
-                if ($selectedCloth) {
-                    $selectedCloth->avgTemp = ($selectedCloth->type->Temperature_min + $selectedCloth->type->Temperature_max) / 2;
-                    $coreOutfit[$coreType] = $selectedCloth;
-                    $selectedTypes[] = $selectedCloth->type->Title;
-                }
-            }
-        }
-    }
-
-    // Ensure upperBody is selected if outerwear is chosen
-    if (!empty($coreOutfit['outerwear']) && empty($coreOutfit['upperBody'])) {
-        if (!empty($coreClothes['upperBody'])) {
-            $selectedTop = $coreClothes['upperBody'][array_rand($coreClothes['upperBody'])];
-            $selectedTop->avgTemp = ($selectedTop->type->Temperature_min + $selectedTop->type->Temperature_max) / 2;
-            $coreOutfit['upperBody'] = $selectedTop;
-            $selectedTypes[] = $selectedTop->type->Title;
-        } else {
-            $coreOutfit['upperBody'] = (object)['message' => 'No suitable upperBody found for the given conditions'];
-        }
-    }
-
-    // Check for umbrella
-    $hasUmbrella = false;
-    foreach ($accessoryClothes as $cloth) {
-        if ($cloth->type->Title == 'umbrella') {
-            $extraOutfit[] = $cloth;
-            $selectedTypes[] = $cloth->type->Title;
-            $hasUmbrella = true;
-            break;
-        }
-    }
-
-    // Filter accessory clothes based on weather conditions and layering logic
-    foreach ($accessoryClothes as $cloth) {
-        if (count($extraOutfit) >= 3) break; // Limit to 3 accessories
-
-        $type = $cloth->type;
-
-        // Skip if this type has already been selected or if it doesn't meet rain requirements
-        if (in_array($type->Title, $selectedTypes) || ($isRainy && !$type->isRainOkay && !$hasUmbrella)) {
-            continue;
-        }
-
-        // Calculate average temperature for the cloth type
-        $avgTemp = ($type->Temperature_min + $type->Temperature_max) / 2;
-
-        // Skip if the cloth is not suitable for the current temperature
-        if ($temperature < $type->Temperature_min || $temperature > $type->Temperature_max) {
-            continue;
-        }
-
-        // Ensure logical layering
-        if ($type->ParentTypeID) {
-            $foundParent = false;
-            foreach ($coreOutfit as $outfitCloth) {
-                if ($outfitCloth && isset($outfitCloth->type) && $outfitCloth->type->TypeID == $type->ParentTypeID) {
-                    $foundParent = true;
-                    break;
-                }
-            }
-            if (!$foundParent) {
-                continue;
-            }
-        }
-
-        // Select the cloth with the average temperature closest to the current temperature
-        $cloth->avgTemp = $avgTemp;
-        $extraOutfit[] = $cloth;
-        $selectedTypes[] = $type->Title;
-    }
-
-    return response()->json([
-        'core' => array_values(array_filter($coreOutfit)),
-        'extras' => array_values($extraOutfit)
-    ], 200);
-}
+    
 
     
     

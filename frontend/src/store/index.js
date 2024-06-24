@@ -4,7 +4,9 @@ import axios from '../axiosConfig';
 const store = createStore({
   state: {
     authToken: localStorage.getItem('authToken') || null,
-    user: JSON.parse(localStorage.getItem('user')) || null
+    user: JSON.parse(localStorage.getItem('user')) || null,
+    indexCarousel: 0, // Initialize indexCarousel
+    weatherForecasts: [] // Initialize weatherForecasts
   },
   mutations: {
     setAuthToken(state, token) {
@@ -35,6 +37,18 @@ const store = createStore({
         state.user.location.isRainy = isRainy;
         localStorage.setItem('user', JSON.stringify(state.user));
       }
+    },
+    setIndexCarousel(state, index) {
+      state.indexCarousel = index;
+    },
+    clearIndexCarousel(state) {
+      state.indexCarousel = 0;
+    },
+    setWeatherForecasts(state, forecasts) { // Mutation to set weatherForecasts
+      state.weatherForecasts = forecasts;
+    },
+    clearWeatherForecasts(state) { // Mutation to clear weatherForecasts
+      state.weatherForecasts = [];
     }
   },
   actions: {
@@ -101,6 +115,8 @@ const store = createStore({
           });
           commit('clearAuthToken');
           commit('clearUser');
+          commit('clearIndexCarousel'); // Clear indexCarousel on logout
+          commit('clearWeatherForecasts'); // Clear weatherForecasts on logout
         } catch (error) {
           console.error('Error during logout:', error);
         }
