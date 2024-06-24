@@ -14,18 +14,17 @@
             <b-button variant="primary" @click="openAddDialog" class="q-mb-md custom-btn-width">Add New Clothing</b-button>
             <q-card class="q-mb-md" v-for="clothing in clothes" :key="clothing.ClothID">
               <q-card-section>
-                <div class="row no-wrap items-center">
-                  <div class="col-2">
+                <div class="row no-wrap items-center clothing-item">
+                  <div class="col-2 item-image-wrapper">
                     <q-img :src="getFullImageUrl(clothing.Picture, clothing.type.Title)" class="item-image" />
                   </div>
-                  <div class="col-4">
+                  <div class="col-4 item-details">
                     <h4>{{ clothing.Title }}</h4>
                     <p v-if="clothing.type">{{ clothing.type.Title }}</p>
-                    <p v-else>Unknown Type</p>
                   </div>
-                  <div class="col-6 text-right">
-                    <b-button variant="warning" @click="openEditDialog(clothing)" class="q-mr-sm">Edit</b-button>
-                    <b-button variant="danger" @click="removeClothing(clothing.ClothID)">Remove</b-button>
+                  <div class="col-6 text-right item-buttons">
+                    <b-button variant="warning" @click="openEditDialog(clothing)" class="q-mr-sm button-responsive">Edit</b-button>
+                    <b-button variant="danger" @click="removeClothing(clothing.ClothID)" class="button-responsive">Remove</b-button>
                   </div>
                 </div>
               </q-card-section>
@@ -386,4 +385,37 @@ onMounted(() => {
   margin-top: 5px;
 }
 
+@media (max-width: 1065px) {
+  .clothing-item {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .item-image-wrapper,
+  .item-details,
+  .item-buttons {
+    width: 100%;
+    text-align: center;
+  }
+
+  .item-details h4,
+  .item-details p {
+    margin: 0;
+    margin-top: 15px;
+    margin-bottom: 15px;
+  }
+
+  .item-buttons {
+    display: flex;
+    justify-content: center;
+  }
+
+  .button-responsive {
+    width: 100px;
+  }
+
+  .item-details p {
+    display: none;
+  }
+}
 </style>
