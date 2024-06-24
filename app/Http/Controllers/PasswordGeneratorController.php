@@ -10,9 +10,6 @@ class PasswordGeneratorController extends Controller
     public function getPassword()
     {
         $password = $this->generatePassword();
-        while (!$this->validatePassword($password)) {
-            $password = $this->generatePassword();
-        }
 
         return response()->json(['password' => $password]);
     }

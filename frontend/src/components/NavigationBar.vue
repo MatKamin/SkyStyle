@@ -87,7 +87,7 @@ header {
   width: 100%;
   top: 0;
   left: 0;
-  z-index: 2;
+  z-index: 3;
 }
 
 a.navbar-brand.d-flex.align-items-center {

@@ -3,11 +3,10 @@
       
       <NavigationBar />
       <br/><br/><br/><br/><br/><br/>
-  
       <q-page-container>
         <q-page class="q-pa-md">
           <div class="shop">
-            <q-btn label="Add New Item" color="primary" @click="addItem" class="q-mb-md" />
+            
             <div class="shop-grid">
               <q-card v-for="item in shopItems" :key="item.id" class="q-mb-md shop-item">
                 <q-img :src="item.image" :alt="item.name" class="item-image" />
@@ -23,6 +22,11 @@
           </div>
         </q-page>
       </q-page-container>
+      
+      <!-- Overlay for Coming Soon -->
+      <div class="overlay">
+        <div class="overlay-text">coming soon...</div>
+      </div>
     </q-layout>
   </template>
   
@@ -94,6 +98,25 @@
   
   .text-white {
     color: white;
+  }
+  
+  .overlay {
+    position: fixed;
+    top: 0px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2;
+  }
+  
+  .overlay-text {
+    color: white;
+    font-size: 2rem;
+    text-align: center;
   }
   </style>
   
