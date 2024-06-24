@@ -24,7 +24,7 @@ class WardrobeController extends Controller
         Auth::user()->wardrobes()->attach($wardrobe->WardrobeID);
 
         $wardrobe->loadCount('clothes');
-        return response()->json(['message' => 'Wardrobe added successfully', 'wardrobe' => $wardrobe], 201);
+        return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'Wardrobe added successfully', 'wardrobe' => $wardrobe], 201);
     }
 
 
@@ -34,7 +34,7 @@ class WardrobeController extends Controller
         $wardrobe = Wardrobe::find($wardrobeId);
 
         if (!$wardrobe) {
-            return response()->json(['message' => 'Wardrobe not found'], 404);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'Wardrobe not found'], 404);
         }
 
         $request->validate([
@@ -47,7 +47,7 @@ class WardrobeController extends Controller
         $wardrobe->save();
 
         $wardrobe->loadCount('clothes');
-        return response()->json(['message' => 'Wardrobe updated successfully', 'wardrobe' => $wardrobe], 200);
+        return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'Wardrobe updated successfully', 'wardrobe' => $wardrobe], 200);
     }
 
     public function removeWardrobe($wardrobeId)
@@ -55,7 +55,7 @@ class WardrobeController extends Controller
         $wardrobe = Wardrobe::find($wardrobeId);
 
         if (!$wardrobe) {
-            return response()->json(['message' => 'Wardrobe not found'], 404);
+            return \App\Http\Helpers\ResponseFormatter::format(request(), ['message' => 'Wardrobe not found'], 404);
         }
 
         // Detach the wardrobe from the authenticated user
@@ -66,13 +66,13 @@ class WardrobeController extends Controller
             $wardrobe->delete();
         }
 
-        return response()->json(['message' => 'Wardrobe removed successfully'], 200);
+        return \App\Http\Helpers\ResponseFormatter::format(request(), ['message' => 'Wardrobe removed successfully'], 200);
     }
 
     public function getAllWardrobes()
     {
         // Get wardrobes associated with the authenticated user
         $wardrobes = Auth::user()->wardrobes()->withCount('clothes')->get();
-        return response()->json(['wardrobes' => $wardrobes], 200);
+        return \App\Http\Helpers\ResponseFormatter::format(request(), ['wardrobes' => $wardrobes], 200);
     }
 }

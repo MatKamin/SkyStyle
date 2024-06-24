@@ -15,16 +15,16 @@ class UserController extends Controller
         $users = User::all();
 
         if ($users->isEmpty()) {
-            return response()->json(['message' => 'No users found'], 404);
+            return \App\Http\Helpers\ResponseFormatter::format(request(), ['message' => 'No users found'], 404);
         }
 
-        return response()->json($users, 200);
+        return \App\Http\Helpers\ResponseFormatter::format(request(), $users, 200);
     }
 
 
     public function profile(Request $request)
     {
-        return response()->json(Auth::user());
+        return \App\Http\Helpers\ResponseFormatter::format($request, Auth::user());
     }
 
 
@@ -33,10 +33,10 @@ class UserController extends Controller
         $user = User::find($id);
 
         if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
+            return \App\Http\Helpers\ResponseFormatter::format(request(), ['error' => 'User not found'], 404);
         }
 
-        return response()->json($user, 200);
+        return \App\Http\Helpers\ResponseFormatter::format(request(), $user, 200);
     }
 
     public function update(Request $request, $id)
@@ -52,30 +52,31 @@ class UserController extends Controller
         ], $messages);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['errors' => $validator->errors()], 422);
         }
 
         $user = User::find($id);
 
         if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['error' => 'User not found'], 404);
         }
 
         $user->update($request->all());
 
-        return response()->json(['message' => 'User updated successfully'], 200);
+        return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'User updated successfully'], 200);
     }
+
 
     public function destroy($id)
     {
         $user = User::find($id);
 
         if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
+            return \App\Http\Helpers\ResponseFormatter::format(request(), ['error' => 'User not found'], 404);
         }
 
         $user->delete();
 
-        return response()->json(['message' => 'User deleted successfully'], 200);
+        return \App\Http\Helpers\ResponseFormatter::format(request(), ['message' => 'User deleted successfully'], 200);
     }
 }

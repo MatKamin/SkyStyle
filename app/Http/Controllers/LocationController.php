@@ -32,12 +32,12 @@ class LocationController extends Controller
 
             if ($response->successful() && count($response->json()['data']) > 0) {
                 $data = $response->json()['data'][0];
-                return response()->json(['lat' => $data['latitude'], 'lon' => $data['longitude']]);
+                return \App\Http\Helpers\ResponseFormatter::format($request, ['lat' => $data['latitude'], 'lon' => $data['longitude']]);
             }
 
-            return response()->json(['error' => 'City not found'], 404);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['error' => 'City not found'], 404);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Could not fetch coordinates', 'message' => $e->getMessage()], 500);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['error' => 'Could not fetch coordinates', 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -67,12 +67,12 @@ class LocationController extends Controller
 
             if ($response->successful() && count($response->json()['data']) > 0) {
                 $data = $response->json()['data'][0];
-                return response()->json(['city' => $data['city']]);
+                return \App\Http\Helpers\ResponseFormatter::format($request, ['city' => $data['city']]);
             }
 
-            return response()->json(['error' => 'City not found'], 404);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['error' => 'City not found'], 404);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Could not fetch city', 'message' => $e->getMessage()], 500);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['error' => 'Could not fetch city', 'message' => $e->getMessage()], 500);
         }
     }
 }

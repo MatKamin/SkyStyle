@@ -21,7 +21,7 @@ Route::middleware('auth:api')->post('logout', [AuthController::class, 'logout'])
 Route::middleware('auth:api')->group(function () {
     Route::get('users', [UserController::class, 'index'])->middleware('admin:5');
     Route::get('users/{id}', [UserController::class, 'show'])->middleware('admin:5');
-    Route::put('users/{id}', [UserController::class, 'update'])->middleware('admin:5');
+    Route::patch('users/{id}', [UserController::class, 'update'])->middleware('admin:5');
     Route::delete('users/{id}', [UserController::class, 'destroy'])->middleware('admin:5');
     Route::get('user', [UserController::class, 'profile']);
 });

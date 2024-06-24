@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Cookie;
+use App\Http\Helpers\ResponseFormatter;
 
 class AuthController extends Controller
 {
@@ -30,7 +30,7 @@ class AuthController extends Controller
         ], $messages);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return ResponseFormatter::format($request, ['errors' => $validator->errors()], 422);
         }
 
         $user = User::create([
@@ -41,10 +41,8 @@ class AuthController extends Controller
 
         $token = $user->createToken('LaravelAuthApp')->accessToken;
 
-        return response()->json(['token' => $token], 200);
+        return ResponseFormatter::format($request, ['token' => $token], 200);
     }
-
-
 
     public function login(Request $request)
     {
@@ -54,15 +52,15 @@ class AuthController extends Controller
             $user = Auth::user();
             $token = $user->createToken('LaravelAuthApp')->accessToken;
 
-            return response()->json(['token' => $token], 200);
+            return ResponseFormatter::format($request, ['token' => $token], 200);
         } else {
-            return response()->json(['error' => 'Wrong E-Mail or Password'], 401);
+            return ResponseFormatter::format($request, ['error' => 'Wrong E-Mail or Password'], 401);
         }
     }
 
     public function logout(Request $request)
     {
         $request->user()->token()->revoke();
-        return response()->json(['message' => 'Successfully logged out']);
+        return ResponseFormatter::format($request, ['message' => 'Successfully logged out']);
     }
 }

@@ -11,9 +11,9 @@ class TypeController extends Controller
     {
         try {
             $types = Type::all();
-            return response()->json(['types' => $types], 200);
+            return \App\Http\Helpers\ResponseFormatter::format(request(), ['types' => $types], 200);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to fetch types', 'error' => $e->getMessage()], 500);
+            return \App\Http\Helpers\ResponseFormatter::format(request(), ['message' => 'Failed to fetch types', 'error' => $e->getMessage()], 500);
         }
     }
 }

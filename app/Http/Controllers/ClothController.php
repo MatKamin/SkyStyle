@@ -42,9 +42,9 @@ class ClothController extends Controller
 
             $cloth->load('type');
 
-            return response()->json(['message' => 'Cloth added successfully', 'cloth' => $cloth], 201);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'Cloth added successfully', 'cloth' => $cloth], 201);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Error adding cloth: ' . $e->getMessage()], 500);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'Error adding cloth: ' . $e->getMessage()], 500);
         }
     }
 
@@ -53,7 +53,7 @@ class ClothController extends Controller
         $cloth = Cloth::find($clothId);
     
         if (!$cloth) {
-            return response()->json(['message' => 'Cloth not found'], 404);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'Cloth not found'], 404);
         }
     
         // Log all request data
@@ -124,12 +124,12 @@ class ClothController extends Controller
             // Log the updated cloth
             error_log('Cloth updated successfully: ' . print_r($cloth->toArray(), true));
     
-            return response()->json(['message' => 'Cloth updated successfully', 'cloth' => $cloth], 200);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'Cloth updated successfully', 'cloth' => $cloth], 200);
         } catch (\Exception $e) {
             // Log any errors during the update process
             error_log('Error updating cloth: ' . $e->getMessage());
             error_log('Error Trace: ' . $e->getTraceAsString());
-            return response()->json(['message' => 'Error updating cloth: ' . $e->getMessage()], 500);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'Error updating cloth: ' . $e->getMessage()], 500);
         }
     }
     
@@ -141,7 +141,7 @@ class ClothController extends Controller
         $cloth = Cloth::find($clothId);
 
         if (!$cloth) {
-            return response()->json(['message' => 'Cloth not found'], 404);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'Cloth not found'], 404);
         }
 
         try {
@@ -154,9 +154,9 @@ class ClothController extends Controller
 
             $cloth->delete();
 
-            return response()->json(['message' => 'Cloth removed successfully'], 200);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'Cloth removed successfully'], 200);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Error removing cloth: ' . $e->getMessage()], 500);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'Error removing cloth: ' . $e->getMessage()], 500);
         }
     }
     
@@ -168,10 +168,10 @@ class ClothController extends Controller
         $cloth = Cloth::with('type', 'wardrobe')->find($clothId);
 
         if (!$cloth) {
-            return response()->json(['message' => 'Cloth not found'], 404);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'Cloth not found'], 404);
         }
 
-        return response()->json(['cloth' => $cloth], 200);
+        return \App\Http\Helpers\ResponseFormatter::format($request, ['cloth' => $cloth], 200);
     }
 
 
@@ -181,12 +181,12 @@ class ClothController extends Controller
         $wardrobe = Wardrobe::find($wardrobeId);
 
         if (!$wardrobe) {
-            return response()->json(['message' => 'Wardrobe not found'], 404);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'Wardrobe not found'], 404);
         }
 
         $clothes = $wardrobe->clothes()->with('type')->get();
 
-        return response()->json(['clothes' => $clothes], 200);
+        return \App\Http\Helpers\ResponseFormatter::format($request, ['clothes' => $clothes], 200);
     }
 
 
@@ -197,24 +197,25 @@ class ClothController extends Controller
             'temperature' => 'required|numeric',
             'isRainy' => 'required|boolean',
         ]);
-    
+
         $temperature = $request->input('temperature');
         $isRainy = $request->input('isRainy');
-    
+
         // Get the authenticated user
         $user = auth()->user();
-    
+
         // Fetch all wardrobes that belong to the user
         $wardrobes = $user->wardrobes()->with('clothes.type')->get();
-    
+
         if ($wardrobes->isEmpty()) {
-            return response()->json(['message' => 'No wardrobes found'], 404);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'No wardrobes found'], 404);
         }
-    
+
         $coreClothes = $this->organizeClothes($wardrobes);
-        
-        return $this->generateOutfit($coreClothes, $temperature, $isRainy);
+
+        return $this->generateOutfit($request, $coreClothes, $temperature, $isRainy);
     }
+
     
     public function getOutfit(Request $request, $wardrobeId)
     {
@@ -223,20 +224,21 @@ class ClothController extends Controller
             'temperature' => 'required|numeric',
             'isRainy' => 'required|boolean',
         ]);
-    
+
         $temperature = $request->input('temperature');
         $isRainy = $request->input('isRainy');
-    
+
         // Fetch the wardrobe with clothes and their types
         $wardrobe = Wardrobe::with('clothes.type')->find($wardrobeId);
         if (!$wardrobe) {
-            return response()->json(['message' => 'Wardrobe not found'], 404);
+            return \App\Http\Helpers\ResponseFormatter::format($request, ['message' => 'Wardrobe not found'], 404);
         }
-    
+
         $coreClothes = $this->organizeClothes(collect([$wardrobe]));
-        
-        return $this->generateOutfit($coreClothes, $temperature, $isRainy);
+
+        return $this->generateOutfit($request, $coreClothes, $temperature, $isRainy);
     }
+
     
     private function organizeClothes($wardrobes)
     {
@@ -274,8 +276,9 @@ class ClothController extends Controller
         return ['core' => $coreClothes, 'accessories' => $accessoryClothes];
     }
     
-    private function generateOutfit($clothes, $temperature, $isRainy)
-    {
+    private function generateOutfit(Request $request, $clothes, $temperature, $isRainy)
+{
+    try {
         $coreOutfit = [
             'upperBody' => null,
             'lowerBody' => null,
@@ -286,7 +289,7 @@ class ClothController extends Controller
         $selectedTypes = [];
         $coreClothes = $clothes['core'];
         $accessoryClothes = $clothes['accessories'];
-    
+
         // Function to select a random match based on temperature
         function selectRandomMatch($clothes, $temperature, $isRainy, $umbrella = false) {
             if (empty($clothes)) return null;
@@ -298,7 +301,7 @@ class ClothController extends Controller
             if (empty($filteredClothes)) return null;
             return $filteredClothes[array_rand($filteredClothes)];
         }
-    
+
         // Check for umbrella
         $hasUmbrella = false;
         foreach ($accessoryClothes as $cloth) {
@@ -309,10 +312,10 @@ class ClothController extends Controller
                 break;
             }
         }
-    
+
         // Check if a full body item is appropriate and should replace upper/lower body
         $useFullBody = rand(0, 1); // Randomly decide whether to use a full-body item
-    
+
         if ($useFullBody && !empty($coreClothes['fullBody'])) {
             $selectedFullBody = selectRandomMatch($coreClothes['fullBody'], $temperature, $isRainy, $hasUmbrella);
             if ($selectedFullBody) {
@@ -322,7 +325,7 @@ class ClothController extends Controller
                 $selectedTypes[] = $selectedFullBody->type->Title;
             }
         }
-    
+
         // Select core clothes if full body item was not selected
         if (empty($coreOutfit['upperBody']) || empty($coreOutfit['lowerBody']) || empty($coreOutfit['shoes'])) {
             foreach (['upperBody', 'lowerBody', 'shoes', 'outerwear'] as $coreType) {
@@ -336,7 +339,7 @@ class ClothController extends Controller
                 }
             }
         }
-    
+
         // Ensure upperBody is selected if outerwear is chosen
         if (!empty($coreOutfit['outerwear']) && empty($coreOutfit['upperBody'])) {
             if (!empty($coreClothes['upperBody'])) {
@@ -348,26 +351,26 @@ class ClothController extends Controller
                 $coreOutfit['upperBody'] = (object)['message' => 'No suitable upperBody found for the given conditions'];
             }
         }
-    
+
         // Filter accessory clothes based on weather conditions and layering logic
         foreach ($accessoryClothes as $cloth) {
             if (count($extraOutfit) >= 3) break; // Limit to 3 accessories
-    
+
             $type = $cloth->type;
-    
+
             // Skip if this type has already been selected or if it doesn't meet rain requirements
             if (in_array($type->Title, $selectedTypes) || ($isRainy && !$type->isRainOkay && !$hasUmbrella)) {
                 continue;
             }
-    
+
             // Calculate average temperature for the cloth type
             $avgTemp = ($type->Temperature_min + $type->Temperature_max) / 2;
-    
+
             // Skip if the cloth is not suitable for the current temperature
             if ($temperature < $type->Temperature_min || $temperature > $type->Temperature_max) {
                 continue;
             }
-    
+
             // Ensure logical layering
             if ($type->ParentTypeID) {
                 $foundParent = false;
@@ -381,35 +384,28 @@ class ClothController extends Controller
                     continue;
                 }
             }
-    
+
             // Select the cloth with the average temperature closest to the current temperature
             $cloth->avgTemp = $avgTemp;
             $extraOutfit[] = $cloth;
             $selectedTypes[] = $type->Title;
         }
-    
-        return response()->json([
+
+        return \App\Http\Helpers\ResponseFormatter::format($request, [
             'core' => array_values(array_filter($coreOutfit)),
             'extras' => array_values($extraOutfit)
         ], 200);
-    }
-    
-    
+        
+    } catch (\Exception $e) {
+        // Log the exception for debugging
+        error_log('Error generating outfit: ' . $e->getMessage());
+        error_log('Error Trace: ' . $e->getTraceAsString());
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+        return \App\Http\Helpers\ResponseFormatter::format($request, [
+            'message' => 'Error generating outfit: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+
 }

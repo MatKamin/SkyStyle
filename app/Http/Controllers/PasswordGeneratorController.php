@@ -10,13 +10,16 @@ class PasswordGeneratorController extends Controller
     public function getPassword()
     {
         $password = $this->generatePassword();
+        while (!$this->validatePassword($password)) {
+            $password = $this->generatePassword();
+        }
 
-        return response()->json(['password' => $password]);
+        return \App\Http\Helpers\ResponseFormatter::format(request(), ['password' => $password]);
     }
 
     private function generatePassword()
     {
-        $response = Http::get('https://api.genratr.com/?length=10&uppercase=true&lowercase=true&special=true&numbers=true');
+        $response = Http::get('https://api.genratr.com/?length=10&uppercase&lowercase&special&numbers');
         $data = $response->json();
         return $data['password'] ?? ''; // Assuming the API response has a 'password' field
     }
