@@ -50,6 +50,7 @@
         </q-card-section>
         <q-card-section>
           <q-input v-model="city" placeholder="City" />
+          <p class="error-message">{{ errorMessage }}</p> <!-- Error message display -->
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Submit" color="primary" @click="fetchCityCoordinates" />
@@ -74,6 +75,7 @@ const router = useRouter();
 const coordinates = ref({ lat: null, lon: null });
 const dialog = ref(false);
 const city = ref('');
+const errorMessage = ref(''); // For displaying error messages
 
 const selectedWardrobe = ref('all');
 const selectedWardrobeLabel = ref('Use All Wardrobes');
@@ -138,10 +140,23 @@ const fetchCoordinates = async () => {
 
 const fetchCityCoordinates = async () => {
   try {
+    errorMessage.value = ''; // Clear previous error message
     await store.dispatch('fetchCoordinates', city.value);
-    dialog.value = false;
+    if (errorMessage.value !== '') {
+      dialog.value = false;
+    }
   } catch (error) {
-    console.error('Error fetching city coordinates:', error);
+    if (error.response) {
+      if (error.response.status === 404) {
+        errorMessage.value = 'City could not be found, please try again.'; // Set error message for 404
+      } else if (error.response.status === 422 && error.response.data.city) {
+        errorMessage.value = error.response.data.city[0]; // Set validation error message
+      } else {
+        errorMessage.value = 'An error occurred, please try again.'; // General error message
+      }
+    } else {
+      errorMessage.value = 'An error occurred, please try again.';
+    }
   }
 };
 
@@ -217,5 +232,11 @@ onMounted(async () => {
 
 .dropdown-item {
   background-color: white; /* Ensure dropdown item background is white */
+}
+
+.error-message {
+  color: red;
+  text-align: center;
+  margin-top: 1em;
 }
 </style>
