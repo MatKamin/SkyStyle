@@ -10,6 +10,7 @@
               <q-btn label="Create New Wardrobe" color="primary" @click="openAddDialog" class="q-mt-md" />
             </div>
             <div v-else>
+              <q-btn label="Create New Wardrobe" color="primary" @click="openAddDialog" class="q-mb-md custom-btn-width" />
               <q-card class="q-mb-md" v-for="wardrobe in wardrobes" :key="wardrobe.WardrobeID">
                 <q-card-section>
                   <div class="row no-wrap items-center">
@@ -17,15 +18,14 @@
                       <h4>{{ wardrobe.Title }}</h4>
                       <p>{{ wardrobe.clothes_count }} clothes</p>
                     </div>
-                    <div class="col-6 text-right">
-                      <q-btn label="Open" color="primary" @click="openWardrobe(wardrobe.WardrobeID, wardrobe.Title)" class="q-mr-sm" />
-                      <q-btn label="Edit" color="warning" @click="openEditDialog(wardrobe)" class="q-mr-sm" />
-                      <q-btn label="Remove" color="negative" @click="removeWardrobe(wardrobe.WardrobeID)" />
+                    <div class="col-6 text-right button-container">
+                      <q-btn label="Open" color="primary" @click="openWardrobe(wardrobe.WardrobeID, wardrobe.Title)" class="q-mr-sm button-fixed-width" />
+                      <q-btn label="Edit" color="warning" @click="openEditDialog(wardrobe)" class="q-mr-sm button-fixed-width" />
+                      <q-btn label="Remove" color="negative" @click="removeWardrobe(wardrobe.WardrobeID)" class="q-mr-sm button-fixed-width" />
                     </div>
                   </div>
                 </q-card-section>
               </q-card>
-              <q-btn label="Create New Wardrobe" color="primary" @click="openAddDialog" class="q-mt-md" />
             </div>
           </div>
         </q-page>
@@ -221,6 +221,10 @@
     width: 80%;
   }
   
+  .custom-btn-width {
+    width: 100%;
+  }
+
   .input-center {
     width: 100%;
     margin-left: auto;
@@ -231,5 +235,45 @@
     font-size: 1.2em;
     padding: 0.75em 1.5em;
   }
+  
+  .button-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .button-fixed-width {
+    min-width: 100px;
+    max-width: 100px;
+  }
+
+  .col-6 {
+    overflow: hidden;
+  }
+
+  h4 {
+    font-weight: bold;
+    line-height: normal;
+  }
+
+
+  @media (max-width: 1200px) {
+    h4 {
+        font-size: 2rem; /* Medium screen font size */
+    }
+}
+
+@media (max-width: 768px) {
+  .h4 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  h4 {
+    font-size: 1.3rem;
+  }
+}
+
   </style>
   
