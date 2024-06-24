@@ -7,9 +7,9 @@
         <HeroSection></HeroSection>
       </div>
     </div>
-    <CarouselSection></CarouselSection>
+    <CarouselSection id="features"></CarouselSection>
     <hr class="separator" />
-    <AboutUs></AboutUs>
+    <AboutUs id="about-us"></AboutUs>
     <hr class="separator" />
     <CallToActionSection></CallToActionSection>
   </div>

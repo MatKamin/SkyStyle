@@ -12,10 +12,14 @@
       </b-row>
       <b-row class="justify-content-center mt-3">
         <b-col xs="12" md="3" class="text-center">
-          <b-button variant="primary" class="cta-button fs-5 btn-login">Log In</b-button>
+          <router-link to="/login">
+            <b-button variant="primary" class="cta-button fs-5 btn-login">Log In</b-button>
+          </router-link>
         </b-col>
         <b-col xs="12" md="3" class="text-center">
-          <b-button variant="success" class="cta-button fs-5 btn-signup">Sign Up</b-button>
+          <router-link to="/register">
+            <b-button variant="success" class="cta-button fs-5 btn-signup">Sign Up</b-button>
+          </router-link>
         </b-col>
       </b-row>
     </b-container>
@@ -26,81 +30,77 @@
 import { BContainer, BRow, BCol, BButton } from 'bootstrap-vue-next';
 </script>
 
+<style scoped>
+.subheader {
+  margin: 5rem;
+  text-align: center;
+}
 
-  
-  <style scoped>
+.cta-section {
+  padding: 3rem 1rem;
+  background-color: #222;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cta-button {
+  width: 100%;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  padding: 0.75rem;
+}
+
+.btn-login {
+  background-color: #23b6f5ac;
+  border-color: #23b6f5ac;
+}
+
+.btn-login:hover {
+  background-color: hsla(198, 91%, 55%, 0.461);
+  border-color: hsla(198, 91%, 55%, 0.461);
+}
+
+.btn-signup {
+  background-color: hsla(0, 0%, 100%, 0.144);
+  border-color: hsla(0, 0%, 100%, 0.144);
+}
+
+.btn-signup:hover {
+  background-color: hwb(0 100% 0% / 0.029);
+  border-color: hwb(0 100% 0% / 0.029);
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 1200px) {
   .subheader {
-    margin: 5rem;
-    text-align: center;
+    margin: 3rem;
   }
-  
-  .cta-section {
-    padding: 3rem 1rem;
-    background-color: #222;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
+
   .cta-button {
-    width: 100%;
-    margin-bottom: 1rem;
-    font-size: 1.25rem;
-    padding: 0.75rem;
+    font-size: 1.125rem;
+    padding: 0.65rem;
   }
-  
-  .btn-login {
-    background-color: #23b6f5ac; 
-    border-color: #23b6f5ac; 
+}
+
+@media (max-width: 768px) {
+  .subheader {
+    margin: 2rem;
   }
-  
-  .btn-login:hover {
-    background-color: hsla(198, 91%, 55%, 0.461);
-    border-color: hsla(198, 91%, 55%, 0.461);
+
+  .cta-button {
+    font-size: 1rem;
+    padding: 0.5rem;
   }
-  
-  .btn-signup {
-    background-color: hsla(0, 0%, 100%, 0.144);
-    border-color: hsla(0, 0%, 100%, 0.144);
+}
+
+@media (max-width: 480px) {
+  .subheader {
+    margin: 1rem;
   }
-  
-  .btn-signup:hover {
-    background-color: hwb(0 100% 0% / 0.029);
-    border-color: hwb(0 100% 0% / 0.029);
+
+  .cta-button {
+    font-size: 0.875rem;
+    padding: 0.5rem;
   }
-  
-  /* Media Queries for Responsiveness */
-  @media (max-width: 1200px) {
-    .subheader {
-      margin: 3rem;
-    }
-  
-    .cta-button {
-      font-size: 1.125rem;
-      padding: 0.65rem;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .subheader {
-      margin: 2rem;
-    }
-  
-    .cta-button {
-      font-size: 1rem;
-      padding: 0.5rem;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .subheader {
-      margin: 1rem;
-    }
-  
-    .cta-button {
-      font-size: 0.875rem;
-      padding: 0.5rem;
-    }
-  }
-  </style>
-  
-  
+}
+</style>

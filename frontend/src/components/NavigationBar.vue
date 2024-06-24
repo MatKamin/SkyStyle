@@ -12,14 +12,14 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <template v-if="!isAuthenticated">
-              <li class="nav-item"><a href="#" class="nav-link">Features</a></li>
-              <li class="nav-item"><a href="#" class="nav-link">About Us</a></li>
+              <li class="nav-item"><router-link to="#features" class="nav-link">Features</router-link></li>
+              <li class="nav-item"><router-link to="#about-us" class="nav-link">About Us</router-link></li>
             </template>
             <template v-else>
-              <li class="nav-item"><a href="/dashboard" class="nav-link">Dashboard</a></li>
-              <li class="nav-item"><a href="/wardrobes" class="nav-link">Your Wardrobes</a></li>
-              <li class="nav-item"><a href="/shop" class="nav-link">Shop</a></li>
-              <li class="nav-item"><a href="/weather" class="nav-link">Weather</a></li>
+              <li class="nav-item"><router-link to="/dashboard" class="nav-link">Dashboard</router-link></li>
+              <li class="nav-item"><router-link to="/wardrobes" class="nav-link">Your Wardrobes</router-link></li>
+              <li class="nav-item"><router-link to="/shop" class="nav-link">Shop</router-link></li>
+              <li class="nav-item"><router-link to="/weather" class="nav-link">Weather</router-link></li>
             </template>
           </ul>
           <div class="d-flex align-items-center align-right">
@@ -39,9 +39,6 @@
     </div>
   </header>
 </template>
-
-
-
 
 <script setup>
 import { computed } from 'vue';
