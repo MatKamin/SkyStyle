@@ -9,9 +9,9 @@
           <q-card>
             <q-card-section>
               <div class="profile">
-                <q-avatar size="100px" class="q-mb-md">
-                  <img :src="user.avatar" :alt="user.name" />
-                </q-avatar>
+                
+                <img :src="user.avatar" :alt="user.name" class="custom-image"/>
+                
                 <h2>{{ user.name }}</h2>
                 <p>{{ user.email }}</p>
                 <q-separator />
@@ -36,16 +36,16 @@
   import { useStore } from 'vuex';
   import { QLayout, QHeader, QPageContainer, QPage, QCard, QCardSection, QAvatar, QSeparator, QItem, QItemSection, QItemLabel } from 'quasar';
   import NavigationBar from './NavigationBar.vue';
+  import { format } from 'date-fns';  // Import date-fns for date formatting
   
   const store = useStore();
   
   const user = computed(() => ({
-    name: store.state.user?.name || 'User Name',
-    email: store.state.user?.email || 'user@example.com',
-    avatar: store.state.user?.avatar || 'https://www.wemove.at/wp-content/uploads/2022/06/placeholder.png',
+    name: store.state.user?.name || 'User Name', // %%% user.name from store
+    email: store.state.user?.email || 'user@example.com', // %%% user.email from store
+    avatar: store.state.user?.avatar || 'https://hwchamber.co.uk/wp-content/uploads/2022/04/avatar-placeholder.gif', // %%% user.avatar from store
     details: store.state.user?.details || {
-      'Joined': 'January 1, 2020',
-      'Last Login': 'Today'
+      'Joined': format(new Date(store.state.user?.created_at), 'MMMM d, yyyy') || 'Date not available' // %%% user.created_at formatted
     }
   }));
   </script>
@@ -74,6 +74,17 @@
   
   .text-white {
     color: white;
+  }
+  
+  .custom-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 90%;
+  }
+  
+  h2 {
+    font-size: 2rem;
   }
   </style>
   
